@@ -514,31 +514,36 @@
     }
 
     /* Manual debt section */
-    .manual-debt-form {
+    .manual-debt-form,
+    .personal-expense-form {
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
-    .manual-debt-row {
+    .manual-debt-row,
+    .personal-expense-row {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
       align-items: center;
     }
-    .manual-debt-row input {
+    .manual-debt-row input,
+    .personal-expense-row input {
       flex: 1;
       min-width: 120px;
       padding: 11px 14px;
       border-radius: 50px;
     }
-    .debt-list {
+    .debt-list,
+    .expense-list {
       display: flex;
       flex-direction: column;
       gap: 8px;
       max-height: 200px;
       overflow-y: auto;
     }
-    .debt-item {
+    .debt-item,
+    .expense-item {
       background: #fff7ed;
       border: 1px solid #fed7aa;
       border-radius: 20px;
@@ -549,24 +554,29 @@
       gap: 10px;
       flex-wrap: wrap;
     }
-    .debt-info {
+    .debt-info,
+    .expense-info {
       display: flex;
       flex-direction: column;
       gap: 2px;
       flex: 1;
     }
-    .debt-name {
+    .debt-name,
+    .expense-name {
       font-weight: 700;
     }
-    .debt-amount {
+    .debt-amount,
+    .expense-amount {
       font-weight: 800;
       color: #b45309;
     }
-    .debt-date {
+    .debt-date,
+    .expense-date {
       font-size: 0.75rem;
       color: var(--text-muted);
     }
-    .delete-debt-btn {
+    .delete-debt-btn,
+    .delete-expense-btn {
       background: transparent;
       border: none;
       color: #b91c1c;
@@ -770,12 +780,30 @@
       <div class="manual-debt-form">
         <div class="manual-debt-row">
           <input type="text" id="debtCustomerName" placeholder="Customer name" autocomplete="off">
+          <input type="text" id="debtProductLabel" placeholder="Product label (e.g. Cigarettes)" autocomplete="off">
           <input type="number" id="debtAmount" placeholder="Amount" min="0" step="0.01">
           <input type="text" id="debtDate" placeholder="Date (e.g. Sep 7, 2026)" autocomplete="off">
           <button class="btn btn-primary" id="addDebtBtn" style="padding:11px 16px;">➕ Add Debt</button>
         </div>
       </div>
       <div id="debtListContainer" class="debt-list" style="margin-top: 16px;"></div>
+    </div>
+
+    <!-- Personal Expense Section -->
+    <div class="card" style="margin-top: 24px;">
+      <div class="section-title">💸 Personal Expense</div>
+      <div class="personal-expense-form">
+        <div class="personal-expense-row">
+          <input type="text" id="expenseName" placeholder="Expense name (e.g. Lunch)" autocomplete="off">
+          <input type="number" id="expenseAmount" placeholder="Amount" min="0" step="0.01">
+          <label style="display:flex; align-items:center; gap:6px; font-size:0.85rem;">
+            <input type="checkbox" id="expenseAutoDate" checked> Auto date
+          </label>
+          <input type="text" id="expenseManualDate" placeholder="Date (e.g. Sep 7, 2026)" autocomplete="off" disabled>
+          <button class="btn btn-primary" id="addExpenseBtn" style="padding:11px 16px;">➕ Add Expense</button>
+        </div>
+      </div>
+      <div id="expenseListContainer" class="expense-list" style="margin-top: 16px;"></div>
     </div>
   </div>
 
@@ -792,8 +820,9 @@
 
   <script>
     (function() {
-      const PRODUCTS_STORAGE_KEY = 'pocket_inventory_products_v9';
-      const DEBTS_STORAGE_KEY = 'pocket_inventory_manual_debts_v1';
+      const PRODUCTS_STORAGE_KEY = 'pocket_inventory_products_v10';
+      const DEBTS_STORAGE_KEY = 'pocket_inventory_manual_debts_v2';
+      const EXPENSES_STORAGE_KEY = 'pocket_inventory_personal_expenses_v1';
 
       const defaultProducts = [
         {
@@ -825,12 +854,17 @@
       ];
 
       const defaultDebts = [
-        { id: 'debt_' + Date.now() + '_1', name: 'John', amount: 250, date: 'Sep 7, 2026' },
-        { id: 'debt_' + Date.now() + '_2', name: 'Mia', amount: 120, date: 'Sep 6, 2026' }
+        { id: 'debt_' + Date.now() + '_1', name: 'John', productLabel: 'Liquor', amount: 250, date: 'Sep 7, 2026' },
+        { id: 'debt_' + Date.now() + '_2', name: 'Mia', productLabel: 'Soft Drinks', amount: 120, date: 'Sep 6, 2026' }
+      ];
+
+      const defaultExpenses = [
+        { id: 'exp_' + Date.now() + '_1', name: 'Lunch', amount: 150, date: new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) }
       ];
 
       let products = [];
       let manualDebts = [];
+      let personalExpenses = [];
 
       function loadProducts() {
         const stored = localStorage.getItem(PRODUCTS_STORAGE_KEY);
@@ -886,6 +920,25 @@
         localStorage.setItem(DEBTS_STORAGE_KEY, JSON.stringify(manualDebts));
       }
 
+      function loadExpenses() {
+        const stored = localStorage.getItem(EXPENSES_STORAGE_KEY);
+        if (stored) {
+          try {
+            personalExpenses = JSON.parse(stored);
+            if (!Array.isArray(personalExpenses)) personalExpenses = defaultExpenses;
+          } catch (e) {
+            personalExpenses = [...defaultExpenses];
+          }
+        } else {
+          personalExpenses = [...defaultExpenses];
+        }
+        saveExpenses();
+      }
+
+      function saveExpenses() {
+        localStorage.setItem(EXPENSES_STORAGE_KEY, JSON.stringify(personalExpenses));
+      }
+
       // DOM elements
       const productNameInput = document.getElementById('productNameInput');
       const productPriceInput = document.getElementById('productPriceInput');
@@ -901,10 +954,18 @@
       const currentDateEl = document.getElementById('currentDate');
 
       const debtCustomerNameInput = document.getElementById('debtCustomerName');
+      const debtProductLabelInput = document.getElementById('debtProductLabel');
       const debtAmountInput = document.getElementById('debtAmount');
       const debtDateInput = document.getElementById('debtDate');
       const addDebtBtn = document.getElementById('addDebtBtn');
       const debtListContainer = document.getElementById('debtListContainer');
+
+      const expenseNameInput = document.getElementById('expenseName');
+      const expenseAmountInput = document.getElementById('expenseAmount');
+      const expenseAutoDateCheckbox = document.getElementById('expenseAutoDate');
+      const expenseManualDateInput = document.getElementById('expenseManualDate');
+      const addExpenseBtn = document.getElementById('addExpenseBtn');
+      const expenseListContainer = document.getElementById('expenseListContainer');
 
       const customerModal = document.getElementById('customerModal');
       const modalBody = document.getElementById('modalBody');
@@ -914,6 +975,14 @@
 
       const today = new Date();
       currentDateEl.textContent = today.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+
+      // Auto date toggle for expense
+      expenseAutoDateCheckbox.addEventListener('change', function() {
+        expenseManualDateInput.disabled = this.checked;
+        if (this.checked) {
+          expenseManualDateInput.value = '';
+        }
+      });
 
       function toggleCigaretteUnit() {
         if (productCategoryInput.value === 'cigarettes') {
@@ -967,7 +1036,6 @@
         let html = '';
         products.forEach(product => {
           const customers = product.customers || [];
-          // sold count = sum of quantities
           const soldCount = customers.reduce((sum, c) => sum + (c.quantity || 1), 0);
           const stockStatus = getStockStatus(product);
           const stockClass = stockStatus === 'critical' ? 'stock-critical' : stockStatus === 'low' ? 'stock-low' : '';
@@ -1061,6 +1129,7 @@
             <div class="debt-item" data-debt-id="${debt.id}">
               <div class="debt-info">
                 <span class="debt-name">👤 ${escapeHTML(debt.name)}</span>
+                ${debt.productLabel ? `<span style="font-size:0.8rem; color:var(--text-muted);">📦 ${escapeHTML(debt.productLabel)}</span>` : ''}
                 <span class="debt-amount">₱${parseFloat(debt.amount).toFixed(2)}</span>
                 <span class="debt-date">📅 ${escapeHTML(debt.date)}</span>
               </div>
@@ -1069,6 +1138,28 @@
           `;
         });
         debtListContainer.innerHTML = html;
+      }
+
+      function renderExpenseList() {
+        if (!expenseListContainer) return;
+        if (personalExpenses.length === 0) {
+          expenseListContainer.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem; padding:8px;">No personal expenses recorded.</div>';
+          return;
+        }
+        let html = '';
+        personalExpenses.forEach(exp => {
+          html += `
+            <div class="expense-item" data-expense-id="${exp.id}">
+              <div class="expense-info">
+                <span class="expense-name">💸 ${escapeHTML(exp.name)}</span>
+                <span class="expense-amount">₱${parseFloat(exp.amount).toFixed(2)}</span>
+                <span class="expense-date">📅 ${escapeHTML(exp.date)}</span>
+              </div>
+              <button class="delete-expense-btn" data-expense-id="${exp.id}">✕</button>
+            </div>
+          `;
+        });
+        expenseListContainer.innerHTML = html;
       }
 
       function escapeHTML(text) {
@@ -1145,6 +1236,7 @@
       // Manual debt functions
       function handleAddDebt() {
         const name = debtCustomerNameInput.value.trim();
+        const productLabel = debtProductLabelInput.value.trim();
         const amount = parseFloat(debtAmountInput.value);
         const dateStr = debtDateInput.value.trim();
 
@@ -1155,6 +1247,7 @@
         const newDebt = {
           id: 'debt_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8),
           name,
+          productLabel,
           amount,
           date: dateStr
         };
@@ -1163,6 +1256,7 @@
         renderDebtList();
         // clear inputs
         debtCustomerNameInput.value = '';
+        debtProductLabelInput.value = '';
         debtAmountInput.value = '';
         debtDateInput.value = '';
       }
@@ -1171,6 +1265,44 @@
         manualDebts = manualDebts.filter(d => d.id !== debtId);
         saveDebts();
         renderDebtList();
+      }
+
+      // Personal expense functions
+      function handleAddExpense() {
+        const name = expenseNameInput.value.trim();
+        const amount = parseFloat(expenseAmountInput.value);
+        let dateStr = '';
+        if (expenseAutoDateCheckbox.checked) {
+          dateStr = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+        } else {
+          dateStr = expenseManualDateInput.value.trim();
+          if (!dateStr) { alert('Please enter a date or check Auto date.'); return; }
+        }
+
+        if (!name) { alert('Please enter expense name.'); return; }
+        if (isNaN(amount) || amount < 0) { alert('Please enter a valid amount.'); return; }
+
+        const newExpense = {
+          id: 'exp_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8),
+          name,
+          amount,
+          date: dateStr
+        };
+        personalExpenses.push(newExpense);
+        saveExpenses();
+        renderExpenseList();
+        // clear inputs
+        expenseNameInput.value = '';
+        expenseAmountInput.value = '';
+        expenseManualDateInput.value = '';
+        expenseAutoDateCheckbox.checked = true;
+        expenseManualDateInput.disabled = true;
+      }
+
+      function handleDeleteExpense(expenseId) {
+        personalExpenses = personalExpenses.filter(e => e.id !== expenseId);
+        saveExpenses();
+        renderExpenseList();
       }
 
       // Customer summary modal
@@ -1374,6 +1506,16 @@
         }
       });
 
+      // Personal expense events
+      addExpenseBtn.addEventListener('click', handleAddExpense);
+      expenseListContainer.addEventListener('click', function(e) {
+        const delBtn = e.target.closest('.delete-expense-btn');
+        if (delBtn) {
+          const expenseId = delBtn.getAttribute('data-expense-id');
+          if (expenseId) handleDeleteExpense(expenseId);
+        }
+      });
+
       // Global product form listeners
       addProductBtn.addEventListener('click', handleAddOrUpdateProduct);
       clearFormBtn.addEventListener('click', clearProductForm);
@@ -1383,8 +1525,10 @@
       // Init
       loadProducts();
       loadDebts();
+      loadExpenses();
       renderProductList();
       renderDebtList();
+      renderExpenseList();
     })();
   </script>
 </body>
