@@ -824,6 +824,9 @@
       const DEBTS_STORAGE_KEY = 'pocket_inventory_manual_debts_v2';
       const EXPENSES_STORAGE_KEY = 'pocket_inventory_personal_expenses_v1';
 
+      // 🔐 Authorization code
+      const AUTH_CODE = '1107';
+
       const defaultProducts = [
         {
           id: 'prod_' + Date.now() + '_1',
@@ -937,6 +940,12 @@
 
       function saveExpenses() {
         localStorage.setItem(EXPENSES_STORAGE_KEY, JSON.stringify(personalExpenses));
+      }
+
+      // 🔐 Authorization helper
+      function verifyAuth() {
+        const entered = prompt('Enter authorization code:');
+        return entered === AUTH_CODE;
       }
 
       // DOM elements
@@ -1261,6 +1270,10 @@
       }
 
       function handleDeleteDebt(debtId) {
+        if (!verifyAuth()) {
+          alert('Access denied');
+          return;
+        }
         manualDebts = manualDebts.filter(d => d.id !== debtId);
         saveDebts();
         renderDebtList();
@@ -1298,6 +1311,10 @@
       }
 
       function handleDeleteExpense(expenseId) {
+        if (!verifyAuth()) {
+          alert('Access denied');
+          return;
+        }
         personalExpenses = personalExpenses.filter(e => e.id !== expenseId);
         saveExpenses();
         renderExpenseList();
@@ -1392,9 +1409,14 @@
         const target = e.target.closest('button');
         if (!target) return;
 
+        // 🔒 Delete product – requires auth
         if (target.classList.contains('delete-product-btn')) {
           const productId = target.getAttribute('data-id');
           if (productId && confirm('Delete this product?')) {
+            if (!verifyAuth()) {
+              alert('Access denied');
+              return;
+            }
             products = products.filter(p => p.id !== productId);
             saveProducts();
             renderProductList();
@@ -1403,7 +1425,12 @@
           return;
         }
 
+        // 🔒 Edit product – requires auth
         if (target.classList.contains('edit-product-btn')) {
+          if (!verifyAuth()) {
+            alert('Access denied');
+            return;
+          }
           const productId = target.getAttribute('data-id');
           const product = products.find(p => p.id === productId);
           if (product) {
@@ -1446,7 +1473,6 @@
               date: new Date().toISOString(),
               quantity: quantity
             });
-            // 🔥 Subtract purchased quantity from stock left
             product.stockLeft = Math.max(0, (product.stockLeft || 0) - quantity);
             saveProducts();
             renderProductList();
@@ -1454,16 +1480,20 @@
           return;
         }
 
+        // 🔒 Delete customer – requires auth
         if (target.classList.contains('delete-customer')) {
           const productId = target.getAttribute('data-product-id');
           const customerIndex = target.getAttribute('data-customer-index');
           if (productId && customerIndex !== null) {
+            if (!verifyAuth()) {
+              alert('Access denied');
+              return;
+            }
             const idx = parseInt(customerIndex, 10);
             const product = products.find(p => p.id === productId);
             if (product && idx >= 0 && idx < product.customers.length) {
               const removedCustomer = product.customers[idx];
               product.customers.splice(idx, 1);
-              // 🔥 Restore stock left (up to total stock)
               if (removedCustomer.quantity && product.totalStock) {
                 product.stockLeft = Math.min(product.totalStock, (product.stockLeft || 0) + removedCustomer.quantity);
               } else {
@@ -1477,7 +1507,7 @@
         }
       });
 
-      // Enter key support for customer input
+      // Enter key support for customer input (no auth needed for adding)
       productListContainer.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && e.target.classList.contains('customer-name-input')) {
           const productId = e.target.getAttribute('data-product-id');
@@ -1496,7 +1526,6 @@
                 date: new Date().toISOString(),
                 quantity: quantity
               });
-              // 🔥 Subtract purchased quantity from stock left
               product.stockLeft = Math.max(0, (product.stockLeft || 0) - quantity);
               saveProducts();
               renderProductList();
