@@ -47,7 +47,6 @@
       width: 100%;
     }
 
-    /* header */
     .app-header {
       display: flex;
       align-items: center;
@@ -101,7 +100,6 @@
       white-space: nowrap;
     }
 
-    /* card */
     .card {
       background: var(--card-bg);
       border-radius: var(--radius-lg);
@@ -109,11 +107,9 @@
       box-shadow: var(--shadow-md);
       margin-bottom: 20px;
       border: 1px solid rgba(255, 255, 255, 0.6);
-      backdrop-filter: blur(2px);
       transition: transform 0.15s ease;
     }
 
-    /* form */
     .add-product-form {
       display: flex;
       flex-direction: column;
@@ -223,7 +219,6 @@
       color: #b45309;
     }
 
-    /* product list */
     .product-list {
       display: flex;
       flex-direction: column;
@@ -269,6 +264,16 @@
       font-size: 0.75rem;
       font-weight: 700;
       letter-spacing: 0.3px;
+    }
+
+    .category-badge {
+      background: #ede9fe;
+      color: #6d28d9;
+    }
+
+    .unit-badge {
+      background: #fef3c7;
+      color: #92400e;
     }
 
     .product-actions {
@@ -349,6 +354,13 @@
       background: #ffedd5;
     }
 
+    .total-sold {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
     .customer-section {
       margin-top: 12px;
       border-top: 1px dashed #e0e7ef;
@@ -394,7 +406,7 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-      max-height: 140px;
+      max-height: 160px;
       overflow-y: auto;
       padding-right: 2px;
     }
@@ -420,6 +432,14 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      flex: 1;
+      cursor: pointer;
+    }
+
+    .customer-name {
+      text-decoration: underline;
+      color: var(--primary);
+      font-weight: 600;
     }
 
     .payment-badge {
@@ -468,6 +488,107 @@
       border-color: #f59e0b !important;
     }
 
+    .hidden {
+      display: none !important;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+      backdrop-filter: blur(3px);
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 24px;
+      padding: 24px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      animation: modalFadeIn 0.2s ease;
+    }
+
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .modal-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+    }
+
+    .modal-close {
+      background: #f1f5f9;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .summary-stats {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .stat-box {
+      flex: 1;
+      background: #f8fafc;
+      padding: 12px;
+      border-radius: 16px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .summary-list {
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 0.9rem;
+    }
+
+    .modal-hidden {
+      display: none !important;
+    }
+
     @media (max-width: 400px) {
       .counter-section {
         flex-direction: column;
@@ -485,7 +606,6 @@
 </head>
 <body>
   <div class="app-container">
-    <!-- header -->
     <div class="app-header">
       <div class="logo-area">
         <div class="logo-icon">📦</div>
@@ -497,7 +617,6 @@
       <div class="header-date" id="currentDate"></div>
     </div>
 
-    <!-- add / edit product form -->
     <div class="card">
       <div class="add-product-form">
         <div class="input-row">
@@ -510,6 +629,26 @@
             <input type="number" id="productPriceInput" placeholder="0.00" min="0" step="0.01">
           </div>
         </div>
+        <div class="input-row">
+          <div class="input-field">
+            <label>Category</label>
+            <select id="productCategoryInput">
+              <option value="other">Other</option>
+              <option value="cigarettes">Cigarettes</option>
+              <option value="liquor">Liquor</option>
+              <option value="soft drinks">Soft Drinks</option>
+              <option value="juice">Juice</option>
+              <option value="ice">Ice</option>
+            </select>
+          </div>
+          <div class="input-field hidden" id="cigaretteUnitField">
+            <label>Cigarette unit</label>
+            <select id="cigaretteUnitInput">
+              <option value="stick">Per Stick</option>
+              <option value="box">Per Box</option>
+            </select>
+          </div>
+        </div>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
           <button class="btn btn-primary" id="addProductBtn">➕ Add product</button>
           <button class="btn btn-light" id="clearFormBtn">Clear</button>
@@ -518,22 +657,31 @@
       </div>
     </div>
 
-    <!-- product list -->
-    <div id="productListContainer" class="product-list">
-      <!-- dynamic -->
+    <div id="productListContainer" class="product-list"></div>
+  </div>
+
+  <!-- Customer summary modal -->
+  <div id="customerModal" class="modal-overlay modal-hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span class="modal-title">👤 Customer Summary</span>
+        <button class="modal-close" id="modalCloseBtn">✕</button>
+      </div>
+      <div id="modalBody"></div>
     </div>
   </div>
 
   <script>
     (function() {
-      // ---------- storage ----------
-      const STORAGE_KEY = 'pocket_inventory_products_v2'; // new version key to avoid conflicts
+      const STORAGE_KEY = 'pocket_inventory_products_v5';
 
       const defaultProducts = [
         {
           id: 'prod_' + Date.now() + '_1',
           name: 'Mango Graham Shake',
           price: 120,
+          category: 'juice',
+          cigaretteUnit: null,
           soldToday: 7,
           customers: [
             { name: 'Ana', paymentType: 'cash' },
@@ -543,9 +691,11 @@
         },
         {
           id: 'prod_' + Date.now() + '_2',
-          name: 'Cheese Pandesal (6pc)',
-          price: 90,
-          soldToday: 3,
+          name: 'Marlboro Red',
+          price: 150,
+          category: 'cigarettes',
+          cigaretteUnit: 'stick',
+          soldToday: 5,
           customers: [
             { name: 'Tita Linda', paymentType: 'cash' }
           ]
@@ -559,13 +709,12 @@
         if (stored) {
           try {
             products = JSON.parse(stored);
-            // migrate any old format where customers were strings
             products = products.map(p => ({
               ...p,
+              category: p.category || 'other',
+              cigaretteUnit: p.cigaretteUnit || null,
               customers: Array.isArray(p.customers) ? p.customers.map(c => {
-                if (typeof c === 'string') {
-                  return { name: c, paymentType: 'cash' }; // default to cash for legacy entries
-                }
+                if (typeof c === 'string') return { name: c, paymentType: 'cash' };
                 return c;
               }) : []
             }));
@@ -582,19 +731,36 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
       }
 
-      // ---------- DOM ----------
+      // DOM elements
       const productNameInput = document.getElementById('productNameInput');
       const productPriceInput = document.getElementById('productPriceInput');
+      const productCategoryInput = document.getElementById('productCategoryInput');
+      const cigaretteUnitField = document.getElementById('cigaretteUnitField');
+      const cigaretteUnitInput = document.getElementById('cigaretteUnitInput');
       const addProductBtn = document.getElementById('addProductBtn');
       const clearFormBtn = document.getElementById('clearFormBtn');
       const productListContainer = document.getElementById('productListContainer');
       const formMessage = document.getElementById('formMessage');
       const currentDateEl = document.getElementById('currentDate');
+      const customerModal = document.getElementById('customerModal');
+      const modalBody = document.getElementById('modalBody');
+      const modalCloseBtn = document.getElementById('modalCloseBtn');
 
       let editingProductId = null;
 
       const today = new Date();
       currentDateEl.textContent = today.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+
+      function toggleCigaretteUnit() {
+        if (productCategoryInput.value === 'cigarettes') {
+          cigaretteUnitField.classList.remove('hidden');
+        } else {
+          cigaretteUnitField.classList.add('hidden');
+          cigaretteUnitInput.value = 'stick';
+        }
+      }
+      productCategoryInput.addEventListener('change', toggleCigaretteUnit);
+      toggleCigaretteUnit(); // initial
 
       function renderProductList() {
         if (!productListContainer) return;
@@ -606,17 +772,19 @@
         let html = '';
         products.forEach(product => {
           const customers = product.customers || [];
+          const totalSold = customers.length;
+
           const customerTags = customers.map((cust, idx) => {
             const name = cust.name || 'Unknown';
             const paymentType = cust.paymentType || 'cash';
             const badgeClass = paymentType === 'cash' ? 'payment-cash' : 'payment-debt';
             return `
               <div class="customer-tag">
-                <div class="customer-info">
-                  <span>👤 ${escapeHTML(name)}</span>
+                <div class="customer-info" data-customer-index="${idx}" data-product-id="${product.id}">
+                  <span class="customer-name">👤 ${escapeHTML(name)}</span>
                   <span class="payment-badge ${badgeClass}">${paymentType === 'cash' ? 'Cash' : 'Debt'}</span>
                 </div>
-                <button class="delete-customer" data-product-id="${product.id}" data-customer-index="${idx}" title="Remove customer">✕</button>
+                <button class="delete-customer" data-product-id="${product.id}" data-customer-index="${idx}">✕</button>
               </div>
             `;
           }).join('');
@@ -627,6 +795,8 @@
                 <div class="product-title">
                   ${escapeHTML(product.name)}
                   <span class="badge">₱${parseFloat(product.price).toFixed(2)}</span>
+                  <span class="badge category-badge">${escapeHTML(product.category)}</span>
+                  ${product.cigaretteUnit ? `<span class="badge unit-badge">${product.cigaretteUnit === 'stick' ? 'Per Stick' : 'Per Box'}</span>` : ''}
                 </div>
                 <div class="product-actions">
                   <button class="btn btn-outline edit-product-btn" data-id="${product.id}" style="padding:8px 12px;">✏️</button>
@@ -643,6 +813,7 @@
                 </div>
                 <button class="reset-daily reset-sold-btn" data-id="${product.id}">↺ Reset day</button>
               </div>
+              <div class="total-sold">📦 Total sold (all time): ${totalSold}</div>
 
               <div class="customer-section">
                 <label>👥 Customers (${customers.length})</label>
@@ -679,6 +850,8 @@
       function handleAddOrUpdate() {
         const name = productNameInput.value.trim();
         const price = parseFloat(productPriceInput.value);
+        const category = productCategoryInput.value;
+        const cigaretteUnit = category === 'cigarettes' ? cigaretteUnitInput.value : null;
 
         if (!name) {
           formMessage.textContent = '❗ Please enter a product name.';
@@ -692,7 +865,7 @@
         if (editingProductId) {
           const index = products.findIndex(p => p.id === editingProductId);
           if (index !== -1) {
-            products[index] = { ...products[index], name, price };
+            products[index] = { ...products[index], name, price, category, cigaretteUnit };
             formMessage.textContent = '✅ Product updated.';
           }
           editingProductId = null;
@@ -702,6 +875,8 @@
             id: 'prod_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8),
             name,
             price,
+            category,
+            cigaretteUnit,
             soldToday: 0,
             customers: []
           };
@@ -716,15 +891,91 @@
       function clearForm() {
         productNameInput.value = '';
         productPriceInput.value = '';
+        productCategoryInput.value = 'other';
+        cigaretteUnitInput.value = 'stick';
         editingProductId = null;
         addProductBtn.innerHTML = '➕ Add product';
         formMessage.textContent = '';
         productNameInput.classList.remove('edit-input');
         productPriceInput.classList.remove('edit-input');
+        toggleCigaretteUnit();
       }
 
-      // ---------- event delegation ----------
+      function showCustomerSummary(productId, customerIndex) {
+        const product = products.find(p => p.id === productId);
+        if (!product) return;
+        const customer = product.customers[customerIndex];
+        if (!customer) return;
+
+        const customerName = customer.name;
+        let totalCash = 0, totalDebt = 0, totalItems = 0;
+        let summaryItems = [];
+
+        products.forEach(prod => {
+          prod.customers.forEach((c) => {
+            if (c.name === customerName) {
+              totalItems++;
+              if (c.paymentType === 'cash') totalCash += parseFloat(prod.price) || 0;
+              else totalDebt += parseFloat(prod.price) || 0;
+              summaryItems.push({
+                productName: prod.name,
+                price: prod.price,
+                paymentType: c.paymentType,
+                unit: prod.cigaretteUnit || null
+              });
+            }
+          });
+        });
+
+        let listHtml = summaryItems.length === 0 ? '<div>No purchases found.</div>' :
+          summaryItems.map(item => `
+            <div class="summary-item">
+              <span>${escapeHTML(item.productName)} ${item.unit ? '(' + (item.unit === 'stick' ? 'Per Stick' : 'Per Box') + ')' : ''} (₱${parseFloat(item.price).toFixed(2)})</span>
+              <span class="payment-badge ${item.paymentType === 'cash' ? 'payment-cash' : 'payment-debt'}">${item.paymentType === 'cash' ? 'Cash' : 'Debt'}</span>
+            </div>
+          `).join('');
+
+        modalBody.innerHTML = `
+          <div class="summary-stats">
+            <div class="stat-box">
+              <div class="stat-value">${totalItems}</div>
+              <div class="stat-label">Items</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-value">₱${totalCash.toFixed(2)}</div>
+              <div class="stat-label">Cash</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-value">₱${totalDebt.toFixed(2)}</div>
+              <div class="stat-label">Debt</div>
+            </div>
+          </div>
+          <div class="summary-list">${listHtml}</div>
+        `;
+
+        customerModal.classList.remove('modal-hidden');
+      }
+
+      function closeModal() {
+        customerModal.classList.add('modal-hidden');
+      }
+
+      modalCloseBtn.addEventListener('click', closeModal);
+      customerModal.addEventListener('click', function(e) {
+        if (e.target === customerModal) closeModal();
+      });
+
       productListContainer.addEventListener('click', function(e) {
+        const customerInfo = e.target.closest('.customer-info');
+        if (customerInfo) {
+          const productId = customerInfo.getAttribute('data-product-id');
+          const customerIndex = parseInt(customerInfo.getAttribute('data-customer-index'), 10);
+          if (productId && !isNaN(customerIndex)) {
+            showCustomerSummary(productId, customerIndex);
+            return;
+          }
+        }
+
         const target = e.target.closest('button');
         if (!target) return;
 
@@ -745,6 +996,13 @@
           if (product) {
             productNameInput.value = product.name;
             productPriceInput.value = product.price;
+            productCategoryInput.value = product.category || 'other';
+            if (product.category === 'cigarettes' && product.cigaretteUnit) {
+              cigaretteUnitInput.value = product.cigaretteUnit;
+            } else {
+              cigaretteUnitInput.value = 'stick';
+            }
+            toggleCigaretteUnit();
             editingProductId = productId;
             addProductBtn.innerHTML = '💾 Update product';
             formMessage.textContent = `✏️ Editing "${product.name}" — modify and save.`;
@@ -785,7 +1043,7 @@
           if (!customerName) { alert('Please enter a customer name.'); return; }
           const product = products.find(p => p.id === productId);
           if (product) {
-            product.customers.push({ name: customerName, paymentType: paymentType });
+            product.customers.push({ name: customerName, paymentType });
             saveProducts();
             renderProductList();
           }
@@ -818,7 +1076,7 @@
           if (customerName && productId) {
             const product = products.find(p => p.id === productId);
             if (product) {
-              product.customers.push({ name: customerName, paymentType: paymentType });
+              product.customers.push({ name: customerName, paymentType });
               saveProducts();
               renderProductList();
             }
@@ -831,7 +1089,6 @@
       productNameInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleAddOrUpdate(); });
       productPriceInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleAddOrUpdate(); });
 
-      // init
       loadProducts();
       renderProductList();
     })();
