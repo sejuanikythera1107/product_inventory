@@ -222,6 +222,15 @@
       color: #b45309;
     }
 
+    .section-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     .product-list {
       display: flex;
       flex-direction: column;
@@ -351,12 +360,14 @@
       gap: 8px;
       margin-bottom: 12px;
       flex-wrap: wrap;
+      align-items: center;
     }
 
-    .add-customer-row input {
+    .add-customer-row input[type="text"],
+    .add-customer-row input[type="number"] {
       flex: 1;
-      min-width: 140px;
-      padding: 11px 16px;
+      min-width: 100px;
+      padding: 11px 12px;
       border-radius: 50px;
     }
 
@@ -371,11 +382,16 @@
       border: 1.5px solid var(--border);
     }
 
+    .quantity-input {
+      max-width: 70px;
+      text-align: center;
+    }
+
     .customer-list {
       display: flex;
       flex-direction: column;
       gap: 8px;
-      max-height: 200px;
+      max-height: 220px;
       overflow-y: auto;
       padding-right: 2px;
     }
@@ -404,6 +420,7 @@
       flex: 1;
       cursor: pointer;
       min-width: 0;
+      flex-wrap: wrap;
     }
 
     .customer-name {
@@ -423,6 +440,16 @@
     .customer-count-badge {
       background: #dbeafe;
       color: #1e40af;
+      border-radius: 30px;
+      padding: 2px 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .customer-qty-badge {
+      background: #fef9c3;
+      color: #854d0e;
       border-radius: 30px;
       padding: 2px 8px;
       font-size: 0.75rem;
@@ -484,6 +511,69 @@
 
     .hidden {
       display: none !important;
+    }
+
+    /* Manual debt section */
+    .manual-debt-form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .manual-debt-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .manual-debt-row input {
+      flex: 1;
+      min-width: 120px;
+      padding: 11px 14px;
+      border-radius: 50px;
+    }
+    .debt-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .debt-item {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: 20px;
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .debt-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+    }
+    .debt-name {
+      font-weight: 700;
+    }
+    .debt-amount {
+      font-weight: 800;
+      color: #b45309;
+    }
+    .debt-date {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .delete-debt-btn {
+      background: transparent;
+      border: none;
+      color: #b91c1c;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 1.1rem;
+      padding: 0 6px;
     }
 
     /* Modal */
@@ -589,6 +679,10 @@
       font-size: 0.7rem;
       color: var(--text-muted);
     }
+    .summary-qty {
+      font-weight: 700;
+      color: #1e40af;
+    }
 
     .modal-hidden {
       display: none !important;
@@ -616,6 +710,7 @@
       <div class="header-date" id="currentDate"></div>
     </div>
 
+    <!-- Product form -->
     <div class="card">
       <div class="add-product-form">
         <div class="input-row">
@@ -666,7 +761,22 @@
       </div>
     </div>
 
+    <!-- Product list -->
     <div id="productListContainer" class="product-list"></div>
+
+    <!-- Manual Debt Section -->
+    <div class="card" style="margin-top: 24px;">
+      <div class="section-title">📒 Manual Debt Ledger</div>
+      <div class="manual-debt-form">
+        <div class="manual-debt-row">
+          <input type="text" id="debtCustomerName" placeholder="Customer name" autocomplete="off">
+          <input type="number" id="debtAmount" placeholder="Amount" min="0" step="0.01">
+          <input type="text" id="debtDate" placeholder="Date (e.g. Sep 7, 2026)" autocomplete="off">
+          <button class="btn btn-primary" id="addDebtBtn" style="padding:11px 16px;">➕ Add Debt</button>
+        </div>
+      </div>
+      <div id="debtListContainer" class="debt-list" style="margin-top: 16px;"></div>
+    </div>
   </div>
 
   <!-- Customer summary modal -->
@@ -682,7 +792,8 @@
 
   <script>
     (function() {
-      const STORAGE_KEY = 'pocket_inventory_products_v8'; // updated key for date support
+      const PRODUCTS_STORAGE_KEY = 'pocket_inventory_products_v9';
+      const DEBTS_STORAGE_KEY = 'pocket_inventory_manual_debts_v1';
 
       const defaultProducts = [
         {
@@ -694,9 +805,9 @@
           totalStock: 50,
           stockLeft: 20,
           customers: [
-            { name: 'Ana', paymentType: 'cash', date: new Date().toISOString() },
-            { name: 'Marco', paymentType: 'cash', date: new Date().toISOString() },
-            { name: 'Juls', paymentType: 'debt', date: new Date().toISOString() }
+            { name: 'Ana', paymentType: 'cash', date: new Date().toISOString(), quantity: 1 },
+            { name: 'Marco', paymentType: 'cash', date: new Date().toISOString(), quantity: 2 },
+            { name: 'Juls', paymentType: 'debt', date: new Date().toISOString(), quantity: 1 }
           ]
         },
         {
@@ -708,15 +819,21 @@
           totalStock: 100,
           stockLeft: 3,
           customers: [
-            { name: 'Tita Linda', paymentType: 'cash', date: new Date().toISOString() }
+            { name: 'Tita Linda', paymentType: 'cash', date: new Date().toISOString(), quantity: 3 }
           ]
         }
       ];
 
+      const defaultDebts = [
+        { id: 'debt_' + Date.now() + '_1', name: 'John', amount: 250, date: 'Sep 7, 2026' },
+        { id: 'debt_' + Date.now() + '_2', name: 'Mia', amount: 120, date: 'Sep 6, 2026' }
+      ];
+
       let products = [];
+      let manualDebts = [];
 
       function loadProducts() {
-        const stored = localStorage.getItem(STORAGE_KEY);
+        const stored = localStorage.getItem(PRODUCTS_STORAGE_KEY);
         if (stored) {
           try {
             products = JSON.parse(stored);
@@ -728,11 +845,12 @@
               stockLeft: p.stockLeft || 0,
               customers: Array.isArray(p.customers) ? p.customers.map(c => {
                 if (typeof c === 'string') {
-                  return { name: c, paymentType: 'cash', date: new Date().toISOString() };
+                  return { name: c, paymentType: 'cash', date: new Date().toISOString(), quantity: 1 };
                 }
                 return {
                   ...c,
-                  date: c.date || new Date().toISOString()
+                  date: c.date || new Date().toISOString(),
+                  quantity: c.quantity || 1
                 };
               }) : []
             }));
@@ -746,7 +864,26 @@
       }
 
       function saveProducts() {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+        localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(products));
+      }
+
+      function loadDebts() {
+        const stored = localStorage.getItem(DEBTS_STORAGE_KEY);
+        if (stored) {
+          try {
+            manualDebts = JSON.parse(stored);
+            if (!Array.isArray(manualDebts)) manualDebts = defaultDebts;
+          } catch (e) {
+            manualDebts = [...defaultDebts];
+          }
+        } else {
+          manualDebts = [...defaultDebts];
+        }
+        saveDebts();
+      }
+
+      function saveDebts() {
+        localStorage.setItem(DEBTS_STORAGE_KEY, JSON.stringify(manualDebts));
       }
 
       // DOM elements
@@ -762,6 +899,13 @@
       const productListContainer = document.getElementById('productListContainer');
       const formMessage = document.getElementById('formMessage');
       const currentDateEl = document.getElementById('currentDate');
+
+      const debtCustomerNameInput = document.getElementById('debtCustomerName');
+      const debtAmountInput = document.getElementById('debtAmount');
+      const debtDateInput = document.getElementById('debtDate');
+      const addDebtBtn = document.getElementById('addDebtBtn');
+      const debtListContainer = document.getElementById('debtListContainer');
+
       const customerModal = document.getElementById('customerModal');
       const modalBody = document.getElementById('modalBody');
       const modalCloseBtn = document.getElementById('modalCloseBtn');
@@ -782,16 +926,16 @@
       productCategoryInput.addEventListener('change', toggleCigaretteUnit);
       toggleCigaretteUnit();
 
-      // Build a map of customer name -> total purchase count
-      function buildCustomerCountMap() {
-        const countMap = {};
+      // Build map: customer name -> total quantity purchased across all products
+      function buildCustomerQuantityMap() {
+        const map = {};
         products.forEach(prod => {
           prod.customers.forEach(c => {
             const name = c.name;
-            countMap[name] = (countMap[name] || 0) + 1;
+            map[name] = (map[name] || 0) + (c.quantity || 1);
           });
         });
-        return countMap;
+        return map;
       }
 
       function getStockStatus(product) {
@@ -818,12 +962,13 @@
           return;
         }
 
-        const customerCountMap = buildCustomerCountMap();
+        const customerQtyMap = buildCustomerQuantityMap();
 
         let html = '';
         products.forEach(product => {
           const customers = product.customers || [];
-          const soldCount = customers.length;
+          // sold count = sum of quantities
+          const soldCount = customers.reduce((sum, c) => sum + (c.quantity || 1), 0);
           const stockStatus = getStockStatus(product);
           const stockClass = stockStatus === 'critical' ? 'stock-critical' : stockStatus === 'low' ? 'stock-low' : '';
 
@@ -832,14 +977,16 @@
             const paymentType = cust.paymentType || 'cash';
             const nameColorClass = paymentType === 'cash' ? 'customer-name-cash' : 'customer-name-debt';
             const badgeClass = paymentType === 'cash' ? 'payment-cash' : 'payment-debt';
-            const totalPurchases = customerCountMap[name] || 1;
+            const quantity = cust.quantity || 1;
+            const totalQty = customerQtyMap[name] || quantity;
             const dateFormatted = formatDate(cust.date);
 
             return `
               <div class="customer-tag">
                 <div class="customer-info" data-customer-index="${idx}" data-product-id="${product.id}">
                   <span class="customer-name ${nameColorClass}">👤 ${escapeHTML(name)}</span>
-                  <span class="customer-count-badge">${totalPurchases} purchase${totalPurchases > 1 ? 's' : ''}</span>
+                  <span class="customer-count-badge">${totalQty} total</span>
+                  <span class="customer-qty-badge">x${quantity}</span>
                   <span class="customer-date">${dateFormatted}</span>
                   <span class="payment-badge ${badgeClass}">${paymentType === 'cash' ? 'Cash' : 'Debt'}</span>
                 </div>
@@ -883,12 +1030,13 @@
               <div class="customer-section">
                 <label>👥 Customers (${customers.length})</label>
                 <div class="add-customer-row">
-                  <input type="text" class="customer-name-input" data-product-id="${product.id}" placeholder="Customer name" autocomplete="off">
+                  <input type="text" class="customer-name-input" data-product-id="${product.id}" placeholder="Name" autocomplete="off">
+                  <input type="number" class="customer-quantity-input" data-product-id="${product.id}" placeholder="Qty" min="1" value="1" style="max-width:70px;">
                   <select class="customer-payment-select" data-product-id="${product.id}">
                     <option value="cash" selected>💵 Cash</option>
                     <option value="debt">📒 Debt</option>
                   </select>
-                  <button class="btn btn-light add-customer-btn" data-id="${product.id}" style="padding:11px 16px; border-radius:50px;">+ Add</button>
+                  <button class="btn btn-light add-customer-btn" data-id="${product.id}" style="padding:11px 16px;">+ Add</button>
                 </div>
                 <div class="customer-list">
                   ${customerTags || '<div style="color:#94a3b8; font-size:0.85rem;">No customers yet</div>'}
@@ -899,6 +1047,28 @@
         });
 
         productListContainer.innerHTML = html;
+      }
+
+      function renderDebtList() {
+        if (!debtListContainer) return;
+        if (manualDebts.length === 0) {
+          debtListContainer.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem; padding:8px;">No manual debts recorded.</div>';
+          return;
+        }
+        let html = '';
+        manualDebts.forEach(debt => {
+          html += `
+            <div class="debt-item" data-debt-id="${debt.id}">
+              <div class="debt-info">
+                <span class="debt-name">👤 ${escapeHTML(debt.name)}</span>
+                <span class="debt-amount">₱${parseFloat(debt.amount).toFixed(2)}</span>
+                <span class="debt-date">📅 ${escapeHTML(debt.date)}</span>
+              </div>
+              <button class="delete-debt-btn" data-debt-id="${debt.id}">✕</button>
+            </div>
+          `;
+        });
+        debtListContainer.innerHTML = html;
       }
 
       function escapeHTML(text) {
@@ -912,7 +1082,8 @@
         });
       }
 
-      function handleAddOrUpdate() {
+      // Product add/update
+      function handleAddOrUpdateProduct() {
         const name = productNameInput.value.trim();
         const price = parseFloat(productPriceInput.value);
         const category = productCategoryInput.value;
@@ -952,11 +1123,11 @@
           formMessage.textContent = '✅ Product added successfully.';
         }
         saveProducts();
-        clearForm();
+        clearProductForm();
         renderProductList();
       }
 
-      function clearForm() {
+      function clearProductForm() {
         productNameInput.value = '';
         productPriceInput.value = '';
         productCategoryInput.value = 'other';
@@ -971,6 +1142,38 @@
         toggleCigaretteUnit();
       }
 
+      // Manual debt functions
+      function handleAddDebt() {
+        const name = debtCustomerNameInput.value.trim();
+        const amount = parseFloat(debtAmountInput.value);
+        const dateStr = debtDateInput.value.trim();
+
+        if (!name) { alert('Please enter customer name.'); return; }
+        if (isNaN(amount) || amount < 0) { alert('Please enter a valid amount.'); return; }
+        if (!dateStr) { alert('Please enter a date (e.g., Sep 7, 2026).'); return; }
+
+        const newDebt = {
+          id: 'debt_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8),
+          name,
+          amount,
+          date: dateStr
+        };
+        manualDebts.push(newDebt);
+        saveDebts();
+        renderDebtList();
+        // clear inputs
+        debtCustomerNameInput.value = '';
+        debtAmountInput.value = '';
+        debtDateInput.value = '';
+      }
+
+      function handleDeleteDebt(debtId) {
+        manualDebts = manualDebts.filter(d => d.id !== debtId);
+        saveDebts();
+        renderDebtList();
+      }
+
+      // Customer summary modal
       function showCustomerSummary(productId, customerIndex) {
         const product = products.find(p => p.id === productId);
         if (!product) return;
@@ -978,21 +1181,26 @@
         if (!customer) return;
 
         const customerName = customer.name;
-        let totalCash = 0, totalDebt = 0, totalItems = 0;
+        let totalCash = 0, totalDebt = 0, totalItems = 0, totalQuantity = 0;
         let summaryItems = [];
 
         products.forEach(prod => {
-          prod.customers.forEach((c, idx) => {
+          prod.customers.forEach((c) => {
             if (c.name === customerName) {
+              const qty = c.quantity || 1;
+              const amount = (parseFloat(prod.price) || 0) * qty;
+              totalQuantity += qty;
               totalItems++;
-              if (c.paymentType === 'cash') totalCash += parseFloat(prod.price) || 0;
-              else totalDebt += parseFloat(prod.price) || 0;
+              if (c.paymentType === 'cash') totalCash += amount;
+              else totalDebt += amount;
               summaryItems.push({
                 productName: prod.name,
                 price: prod.price,
                 paymentType: c.paymentType,
                 unit: prod.cigaretteUnit || null,
-                date: c.date
+                date: c.date,
+                quantity: qty,
+                amount: amount
               });
             }
           });
@@ -1002,8 +1210,8 @@
           summaryItems.map(item => `
             <div class="summary-item">
               <div class="summary-item-left">
-                <span><strong>${escapeHTML(item.productName)}</strong> ${item.unit ? '(' + (item.unit === 'stick' ? 'Per Stick' : 'Per Box') + ')' : ''} (₱${parseFloat(item.price).toFixed(2)})</span>
-                <span class="summary-item-date">📅 ${formatDate(item.date)}</span>
+                <span><strong>${escapeHTML(item.productName)}</strong> ${item.unit ? '(' + (item.unit === 'stick' ? 'Per Stick' : 'Per Box') + ')' : ''} (₱${parseFloat(item.price).toFixed(2)} x ${item.quantity})</span>
+                <span class="summary-item-date">📅 ${formatDate(item.date)} · <span class="summary-qty">₱${item.amount.toFixed(2)}</span></span>
               </div>
               <span class="payment-badge ${item.paymentType === 'cash' ? 'payment-cash' : 'payment-debt'}">${item.paymentType === 'cash' ? 'Cash' : 'Debt'}</span>
             </div>
@@ -1012,7 +1220,7 @@
         modalBody.innerHTML = `
           <div class="summary-stats">
             <div class="stat-box">
-              <div class="stat-value">${totalItems}</div>
+              <div class="stat-value">${totalQuantity}</div>
               <div class="stat-label">Items</div>
             </div>
             <div class="stat-box">
@@ -1034,6 +1242,7 @@
         customerModal.classList.add('modal-hidden');
       }
 
+      // Event listeners
       modalCloseBtn.addEventListener('click', closeModal);
       customerModal.addEventListener('click', function(e) {
         if (e.target === customerModal) closeModal();
@@ -1059,7 +1268,7 @@
             products = products.filter(p => p.id !== productId);
             saveProducts();
             renderProductList();
-            if (editingProductId === productId) clearForm();
+            if (editingProductId === productId) clearProductForm();
           }
           return;
         }
@@ -1092,16 +1301,20 @@
         if (target.classList.contains('add-customer-btn')) {
           const productId = target.getAttribute('data-id');
           const inputField = document.querySelector(`.customer-name-input[data-product-id="${productId}"]`);
+          const quantityField = document.querySelector(`.customer-quantity-input[data-product-id="${productId}"]`);
           const selectField = document.querySelector(`.customer-payment-select[data-product-id="${productId}"]`);
           const customerName = inputField ? inputField.value.trim() : '';
           const paymentType = selectField ? selectField.value : 'cash';
+          const quantity = quantityField ? parseInt(quantityField.value) || 1 : 1;
           if (!customerName) { alert('Please enter a customer name.'); return; }
+          if (quantity < 1) { alert('Quantity must be at least 1.'); return; }
           const product = products.find(p => p.id === productId);
           if (product) {
             product.customers.push({ 
               name: customerName, 
               paymentType, 
-              date: new Date().toISOString() 
+              date: new Date().toISOString(),
+              quantity: quantity
             });
             saveProducts();
             renderProductList();
@@ -1125,20 +1338,24 @@
         }
       });
 
+      // Enter key support for customer input
       productListContainer.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && e.target.classList.contains('customer-name-input')) {
           const productId = e.target.getAttribute('data-product-id');
           const inputField = e.target;
+          const quantityField = document.querySelector(`.customer-quantity-input[data-product-id="${productId}"]`);
           const selectField = document.querySelector(`.customer-payment-select[data-product-id="${productId}"]`);
           const customerName = inputField.value.trim();
           const paymentType = selectField ? selectField.value : 'cash';
+          const quantity = quantityField ? parseInt(quantityField.value) || 1 : 1;
           if (customerName && productId) {
             const product = products.find(p => p.id === productId);
             if (product) {
               product.customers.push({ 
                 name: customerName, 
                 paymentType, 
-                date: new Date().toISOString() 
+                date: new Date().toISOString(),
+                quantity: quantity
               });
               saveProducts();
               renderProductList();
@@ -1147,13 +1364,27 @@
         }
       });
 
-      addProductBtn.addEventListener('click', handleAddOrUpdate);
-      clearFormBtn.addEventListener('click', clearForm);
-      productNameInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleAddOrUpdate(); });
-      productPriceInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleAddOrUpdate(); });
+      // Manual debt events
+      addDebtBtn.addEventListener('click', handleAddDebt);
+      debtListContainer.addEventListener('click', function(e) {
+        const delBtn = e.target.closest('.delete-debt-btn');
+        if (delBtn) {
+          const debtId = delBtn.getAttribute('data-debt-id');
+          if (debtId) handleDeleteDebt(debtId);
+        }
+      });
 
+      // Global product form listeners
+      addProductBtn.addEventListener('click', handleAddOrUpdateProduct);
+      clearFormBtn.addEventListener('click', clearProductForm);
+      productNameInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleAddOrUpdateProduct(); });
+      productPriceInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleAddOrUpdateProduct(); });
+
+      // Init
       loadProducts();
+      loadDebts();
       renderProductList();
+      renderDebtList();
     })();
   </script>
 </body>
