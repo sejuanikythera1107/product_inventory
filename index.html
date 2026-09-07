@@ -23,6 +23,9 @@
       --radius-md: 18px;
       --radius-sm: 12px;
       --font: 'Inter', system-ui, -apple-system, sans-serif;
+      --stock-ok: #ffffff;
+      --stock-low: #fef9c3;   /* yellow */
+      --stock-critical: #fee2e2; /* red */
     }
 
     * {
@@ -226,15 +229,21 @@
     }
 
     .product-item {
-      background: white;
+      background: var(--stock-ok);
       border-radius: var(--radius-lg);
       padding: 18px 16px;
       box-shadow: var(--shadow-md);
       border: 1px solid rgba(255, 255, 255, 0.7);
-      transition: transform 0.1s ease, box-shadow 0.2s;
+      transition: transform 0.1s ease, box-shadow 0.2s, background 0.2s;
     }
     .product-item:hover {
       box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+    }
+    .stock-low {
+      background: var(--stock-low);
+    }
+    .stock-critical {
+      background: var(--stock-critical);
     }
 
     .product-header {
@@ -282,83 +291,43 @@
       flex-wrap: wrap;
     }
 
-    .counter-section {
+    .sold-section {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 12px;
+      gap: 10px;
       margin: 14px 0 16px;
-      flex-wrap: wrap;
       background: #f8fafc;
       padding: 10px 14px;
       border-radius: 50px;
       border: 1px solid #eef2f6;
     }
 
-    .counter-label {
+    .sold-label {
       font-weight: 600;
       font-size: 0.9rem;
       color: var(--text-muted);
-    }
-
-    .counter-control {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .counter-btn {
-      background: white;
-      border: 1.5px solid #d1d9e0;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      font-size: 1.4rem;
-      font-weight: 600;
-      color: var(--text-dark);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.1s;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
-    }
-    .counter-btn:active {
-      background: var(--primary-light);
-      border-color: var(--primary);
-      transform: scale(0.9);
     }
 
     .sold-count {
       font-weight: 800;
       font-size: 1.8rem;
       color: var(--primary-dark);
-      min-width: 45px;
-      text-align: center;
       line-height: 1;
     }
 
-    .reset-daily {
-      background: #fff7ed;
-      color: #c2410c;
-      border: 1px solid #fed7aa;
-      padding: 8px 16px;
-      border-radius: 30px;
-      font-weight: 600;
-      font-size: 0.75rem;
-      cursor: pointer;
-      transition: all 0.15s;
-      white-space: nowrap;
-    }
-    .reset-daily:hover {
-      background: #ffedd5;
-    }
-
-    .total-sold {
+    .stock-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
       font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      margin-top: 4px;
+      font-weight: 600;
+    }
+    .stock-badge {
+      padding: 4px 10px;
+      border-radius: 30px;
+      background: #e2e8f0;
+      color: var(--text-dark);
     }
 
     .customer-section {
@@ -438,8 +407,13 @@
 
     .customer-name {
       text-decoration: underline;
-      color: var(--primary);
       font-weight: 600;
+    }
+    .customer-name-cash {
+      color: #16a34a; /* green */
+    }
+    .customer-name-debt {
+      color: #ea8c1e; /* orange */
     }
 
     .payment-badge {
@@ -454,8 +428,8 @@
       color: #166534;
     }
     .payment-debt {
-      background: #fee2e2;
-      color: #b91c1c;
+      background: #ffedd5;
+      color: #b45309;
     }
 
     .delete-customer {
@@ -590,16 +564,10 @@
     }
 
     @media (max-width: 400px) {
-      .counter-section {
+      .sold-section {
         flex-direction: column;
-        align-items: stretch;
+        align-items: flex-start;
         border-radius: 20px;
-      }
-      .counter-control {
-        justify-content: center;
-      }
-      .reset-daily {
-        text-align: center;
       }
     }
   </style>
@@ -649,6 +617,16 @@
             </select>
           </div>
         </div>
+        <div class="input-row">
+          <div class="input-field">
+            <label>Total stock</label>
+            <input type="number" id="totalStockInput" placeholder="e.g. 50" min="0" step="1">
+          </div>
+          <div class="input-field">
+            <label>Stock left</label>
+            <input type="number" id="stockLeftInput" placeholder="e.g. 20" min="0" step="1">
+          </div>
+        </div>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
           <button class="btn btn-primary" id="addProductBtn">➕ Add product</button>
           <button class="btn btn-light" id="clearFormBtn">Clear</button>
@@ -673,7 +651,7 @@
 
   <script>
     (function() {
-      const STORAGE_KEY = 'pocket_inventory_products_v5';
+      const STORAGE_KEY = 'pocket_inventory_products_v7'; // updated key
 
       const defaultProducts = [
         {
@@ -682,7 +660,8 @@
           price: 120,
           category: 'juice',
           cigaretteUnit: null,
-          soldToday: 7,
+          totalStock: 50,
+          stockLeft: 20,
           customers: [
             { name: 'Ana', paymentType: 'cash' },
             { name: 'Marco', paymentType: 'cash' },
@@ -695,7 +674,8 @@
           price: 150,
           category: 'cigarettes',
           cigaretteUnit: 'stick',
-          soldToday: 5,
+          totalStock: 100,
+          stockLeft: 3,
           customers: [
             { name: 'Tita Linda', paymentType: 'cash' }
           ]
@@ -713,6 +693,8 @@
               ...p,
               category: p.category || 'other',
               cigaretteUnit: p.cigaretteUnit || null,
+              totalStock: p.totalStock || 0,
+              stockLeft: p.stockLeft || 0,
               customers: Array.isArray(p.customers) ? p.customers.map(c => {
                 if (typeof c === 'string') return { name: c, paymentType: 'cash' };
                 return c;
@@ -737,6 +719,8 @@
       const productCategoryInput = document.getElementById('productCategoryInput');
       const cigaretteUnitField = document.getElementById('cigaretteUnitField');
       const cigaretteUnitInput = document.getElementById('cigaretteUnitInput');
+      const totalStockInput = document.getElementById('totalStockInput');
+      const stockLeftInput = document.getElementById('stockLeftInput');
       const addProductBtn = document.getElementById('addProductBtn');
       const clearFormBtn = document.getElementById('clearFormBtn');
       const productListContainer = document.getElementById('productListContainer');
@@ -760,7 +744,14 @@
         }
       }
       productCategoryInput.addEventListener('change', toggleCigaretteUnit);
-      toggleCigaretteUnit(); // initial
+      toggleCigaretteUnit();
+
+      function getStockStatus(product) {
+        if (!product.totalStock || product.totalStock <= 0) return 'ok'; // no stock tracking
+        if (product.stockLeft <= 3) return 'critical';
+        if (product.stockLeft <= product.totalStock / 2) return 'low';
+        return 'ok';
+      }
 
       function renderProductList() {
         if (!productListContainer) return;
@@ -772,16 +763,19 @@
         let html = '';
         products.forEach(product => {
           const customers = product.customers || [];
-          const totalSold = customers.length;
+          const soldCount = customers.length;
+          const stockStatus = getStockStatus(product);
+          const stockClass = stockStatus === 'critical' ? 'stock-critical' : stockStatus === 'low' ? 'stock-low' : '';
 
           const customerTags = customers.map((cust, idx) => {
             const name = cust.name || 'Unknown';
             const paymentType = cust.paymentType || 'cash';
+            const nameColorClass = paymentType === 'cash' ? 'customer-name-cash' : 'customer-name-debt';
             const badgeClass = paymentType === 'cash' ? 'payment-cash' : 'payment-debt';
             return `
               <div class="customer-tag">
                 <div class="customer-info" data-customer-index="${idx}" data-product-id="${product.id}">
-                  <span class="customer-name">👤 ${escapeHTML(name)}</span>
+                  <span class="customer-name ${nameColorClass}">👤 ${escapeHTML(name)}</span>
                   <span class="payment-badge ${badgeClass}">${paymentType === 'cash' ? 'Cash' : 'Debt'}</span>
                 </div>
                 <button class="delete-customer" data-product-id="${product.id}" data-customer-index="${idx}">✕</button>
@@ -789,8 +783,19 @@
             `;
           }).join('');
 
+          let stockInfo = '';
+          if (product.totalStock > 0) {
+            stockInfo = `
+              <div class="stock-info">
+                <span class="stock-badge">📦 Stock: ${product.stockLeft} / ${product.totalStock}</span>
+                ${stockStatus === 'critical' ? '<span style="color:red; font-weight:700;">⚠️ Critical</span>' : ''}
+                ${stockStatus === 'low' ? '<span style="color:orange; font-weight:700;">🟡 Halfway</span>' : ''}
+              </div>
+            `;
+          }
+
           html += `
-            <div class="product-item" data-product-id="${product.id}">
+            <div class="product-item ${stockClass}" data-product-id="${product.id}">
               <div class="product-header">
                 <div class="product-title">
                   ${escapeHTML(product.name)}
@@ -804,16 +809,11 @@
                 </div>
               </div>
 
-              <div class="counter-section">
-                <span class="counter-label">📊 Sold today</span>
-                <div class="counter-control">
-                  <button class="counter-btn dec-sold-btn" data-id="${product.id}">−</button>
-                  <span class="sold-count" id="sold-count-${product.id}">${product.soldToday}</span>
-                  <button class="counter-btn inc-sold-btn" data-id="${product.id}">+</button>
-                </div>
-                <button class="reset-daily reset-sold-btn" data-id="${product.id}">↺ Reset day</button>
+              <div class="sold-section">
+                <span class="sold-label">📊 Sold today</span>
+                <span class="sold-count">${soldCount}</span>
               </div>
-              <div class="total-sold">📦 Total sold (all time): ${totalSold}</div>
+              ${stockInfo}
 
               <div class="customer-section">
                 <label>👥 Customers (${customers.length})</label>
@@ -852,6 +852,8 @@
         const price = parseFloat(productPriceInput.value);
         const category = productCategoryInput.value;
         const cigaretteUnit = category === 'cigarettes' ? cigaretteUnitInput.value : null;
+        const totalStock = parseInt(totalStockInput.value) || 0;
+        const stockLeft = parseInt(stockLeftInput.value) || 0;
 
         if (!name) {
           formMessage.textContent = '❗ Please enter a product name.';
@@ -865,7 +867,7 @@
         if (editingProductId) {
           const index = products.findIndex(p => p.id === editingProductId);
           if (index !== -1) {
-            products[index] = { ...products[index], name, price, category, cigaretteUnit };
+            products[index] = { ...products[index], name, price, category, cigaretteUnit, totalStock, stockLeft };
             formMessage.textContent = '✅ Product updated.';
           }
           editingProductId = null;
@@ -877,7 +879,8 @@
             price,
             category,
             cigaretteUnit,
-            soldToday: 0,
+            totalStock,
+            stockLeft,
             customers: []
           };
           products.push(newProduct);
@@ -893,6 +896,8 @@
         productPriceInput.value = '';
         productCategoryInput.value = 'other';
         cigaretteUnitInput.value = 'stick';
+        totalStockInput.value = '';
+        stockLeftInput.value = '';
         editingProductId = null;
         addProductBtn.innerHTML = '➕ Add product';
         formMessage.textContent = '';
@@ -1002,6 +1007,8 @@
             } else {
               cigaretteUnitInput.value = 'stick';
             }
+            totalStockInput.value = product.totalStock || '';
+            stockLeftInput.value = product.stockLeft || '';
             toggleCigaretteUnit();
             editingProductId = productId;
             addProductBtn.innerHTML = '💾 Update product';
@@ -1010,27 +1017,6 @@
             productPriceInput.classList.add('edit-input');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }
-          return;
-        }
-
-        if (target.classList.contains('inc-sold-btn')) {
-          const productId = target.getAttribute('data-id');
-          const product = products.find(p => p.id === productId);
-          if (product) { product.soldToday += 1; saveProducts(); renderProductList(); }
-          return;
-        }
-
-        if (target.classList.contains('dec-sold-btn')) {
-          const productId = target.getAttribute('data-id');
-          const product = products.find(p => p.id === productId);
-          if (product && product.soldToday > 0) { product.soldToday -= 1; saveProducts(); renderProductList(); }
-          return;
-        }
-
-        if (target.classList.contains('reset-sold-btn')) {
-          const productId = target.getAttribute('data-id');
-          const product = products.find(p => p.id === productId);
-          if (product) { product.soldToday = 0; saveProducts(); renderProductList(); }
           return;
         }
 
