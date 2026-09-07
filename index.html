@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>📦 Pocket Inventory · Sales tracker</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    }
+
+    body {
+      background: #f5f7fb;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 12px 8px 30px;
+    }
+
+    .app-container {
+      max-width: 600px;
+      width: 100%;
+    }
+
+    h1 {
+      font-size: 1.9rem;
+      font-weight: 700;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+      letter-spacing: -0.3px;
+      padding: 0 4px;
+    }
+
+    h1 span {
+      background: #2d6a4f;
+      color: white;
+      font-size: 0.9rem;
+      padding: 4px 12px;
+      border-radius: 40px;
+      letter-spacing: 0.5px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 24px;
+      padding: 18px 16px;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.03);
+      margin-bottom: 20px;
+      border: 1px solid #e9eef3;
+    }
+
+    .add-product-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .input-field {
+      flex: 1;
+      min-width: 120px;
+    }
+
+    .input-field label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: #5f6c80;
+      margin-bottom: 5px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #dbe0e8;
+      border-radius: 16px;
+      font-size: 1rem;
+      background: #fafcff;
+      transition: 0.2s;
+      outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: #40916c;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(64, 145, 108, 0.1);
+    }
+
+    .btn {
+      border: none;
+      background: #1e293b;
+      color: white;
+      font-weight: 600;
+      padding: 13px 18px;
+      border-radius: 18px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.15s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: #2d6a4f;
+    }
+    .btn-primary:hover {
+      background: #1b4b36;
+    }
+
+    .btn-secondary {
+      background: #eef2f6;
+      color: #1e293b;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      border-radius: 12px;
+    }
+
+    .product-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .product-item {
+      background: #ffffff;
+      border: 1px solid #e0e7ef;
+      border-radius: 22px;
+      padding: 16px 14px;
+      transition: 0.15s;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    }
+
+    .product-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .product-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #0f172a;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      background: #e7f0ec;
+      color: #1e4d3a;
+      padding: 4px 10px;
+      border-radius: 30px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .product-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .counter-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 12px 0 10px;
+      flex-wrap: wrap;
+    }
+
+    .counter-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f1f5f9;
+      padding: 6px 10px;
+      border-radius: 40px;
+    }
+
+    .counter-btn {
+      background: white;
+      border: 1px solid #cbd5e1;
+      width: 36px;
+      height: 36px;
+      border-radius: 30px;
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: #1e293b;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.1s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+    .counter-btn:active {
+      background: #e2e8f0;
+      transform: scale(0.95);
+    }
+
+    .sold-count {
+      font-weight: 800;
+      font-size: 1.5rem;
+      color: #0f172a;
+      min-width: 40px;
+      text-align: center;
+    }
+
+    .reset-daily {
+      background: #fff1e5;
+      color: #9a4e00;
+      border: 1px solid #ffd7b0;
+      padding: 8px 14px;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .customer-section {
+      margin-top: 14px;
+      border-top: 1px dashed #d9e2ec;
+      padding-top: 14px;
+    }
+
+    .customer-section label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .add-customer-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .add-customer-row input {
+      flex: 1;
+      padding: 10px 14px;
+    }
+
+    .customer-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+
+    .customer-tag {
+      background: #f8fafc;
+      border-radius: 30px;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid #e2e8f0;
+    }
+
+    .delete-customer {
+      background: transparent;
+      border: none;
+      color: #b91c1c;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0 5px;
+    }
+
+    .edit-input {
+      background: #fefce8;
+      border-color: #d97706;
+    }
+
+    .empty-message {
+      text-align: center;
+      color: #94a3b8;
+      padding: 30px 10px;
+      font-style: italic;
+    }
+
+    .inline-flex {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <h1>
+      📦 Pocket Inventory 
+      <span>daily tracker</span>
+    </h1>
+
+    <!-- add / edit product form -->
+    <div class="card">
+      <div class="add-product-form">
+        <div class="input-row">
+          <div class="input-field">
+            <label>Product name</label>
+            <input type="text" id="productNameInput" placeholder="e.g. Iced Coffee" autocomplete="off">
+          </div>
+          <div class="input-field">
+            <label>Price (₱/$)</label>
+            <input type="number" id="productPriceInput" placeholder="0.00" min="0" step="0.01">
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-primary" id="addProductBtn">➕ Add product</button>
+          <button class="btn" id="clearFormBtn" style="background: #e2e8f0; color:#1e293b;">Clear</button>
+        </div>
+        <div id="formMessage" style="font-size:0.85rem; color:#b45309; font-weight:500;"></div>
+      </div>
+    </div>
+
+    <!-- product list container -->
+    <div id="productListContainer" class="product-list">
+      <!-- dynamic product items injected here -->
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // ---------- storage ----------
+      const STORAGE_KEY = 'pocket_inventory_products_v1';
+
+      // default seed data (only first time)
+      const defaultProducts = [
+        {
+          id: 'prod_' + Date.now() + '_1',
+          name: 'Mango Graham Shake',
+          price: 120,
+          soldToday: 7,
+          customers: ['Ana', 'Marco', 'Juls']
+        },
+        {
+          id: 'prod_' + Date.now() + '_2',
+          name: 'Cheese Pandesal (6pc)',
+          price: 90,
+          soldToday: 3,
+          customers: ['Tita Linda']
+        }
+      ];
+
+      let products = [];
+
+      // load from localStorage
+      function loadProducts() {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          try {
+            products = JSON.parse(stored);
+            // ensure every product has customers array
+            products = products.map(p => ({
+              ...p,
+              customers: Array.isArray(p.customers) ? p.customers : []
+            }));
+          } catch (e) {
+            products = [...defaultProducts];
+          }
+        } else {
+          products = [...defaultProducts];
+        }
+        saveProducts();
+      }
+
+      function saveProducts() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+      }
+
+      // ---------- DOM elements ----------
+      const productNameInput = document.getElementById('productNameInput');
+      const productPriceInput = document.getElementById('productPriceInput');
+      const addProductBtn = document.getElementById('addProductBtn');
+      const clearFormBtn = document.getElementById('clearFormBtn');
+      const productListContainer = document.getElementById('productListContainer');
+      const formMessage = document.getElementById('formMessage');
+
+      // editing state
+      let editingProductId = null;
+
+      // ---------- render function ----------
+      function renderProductList() {
+        if (!productListContainer) return;
+        if (products.length === 0) {
+          productListContainer.innerHTML = `<div class="empty-message">✨ No products yet. Add your first item above.</div>`;
+          return;
+        }
+
+        let html = '';
+        products.forEach(product => {
+          const customers = product.customers || [];
+          const customerTags = customers.map((cust, idx) => {
+            return `
+              <div class="customer-tag">
+                <span>👤 ${escapeHTML(cust)}</span>
+                <button class="delete-customer" data-product-id="${product.id}" data-customer-index="${idx}" title="Remove customer">✕</button>
+              </div>
+            `;
+          }).join('');
+
+          html += `
+            <div class="product-item" data-product-id="${product.id}">
+              <div class="product-header">
+                <div class="product-title">
+                  ${escapeHTML(product.name)}
+                  <span class="badge">₱${parseFloat(product.price).toFixed(2)}</span>
+                </div>
+                <div class="product-actions">
+                  <button class="btn btn-secondary edit-product-btn" data-id="${product.id}">✏️ Edit</button>
+                  <button class="btn btn-secondary delete-product-btn" data-id="${product.id}" style="background:#fee2e2; color:#b91c1c;">🗑️</button>
+                </div>
+              </div>
+
+              <div class="counter-section">
+                <span style="font-weight:600;">📊 Sold today:</span>
+                <div class="counter-control">
+                  <button class="counter-btn dec-sold-btn" data-id="${product.id}">−</button>
+                  <span class="sold-count" id="sold-count-${product.id}">${product.soldToday}</span>
+                  <button class="counter-btn inc-sold-btn" data-id="${product.id}">+</button>
+                </div>
+                <button class="reset-daily reset-sold-btn" data-id="${product.id}">↺ Reset day</button>
+              </div>
+
+              <div class="customer-section">
+                <label>👥 Customers (${customers.length})</label>
+                <div class="add-customer-row">
+                  <input type="text" class="customer-name-input" data-product-id="${product.id}" placeholder="Customer name" autocomplete="off">
+                  <button class="btn btn-secondary add-customer-btn" data-id="${product.id}" style="background:#d9f0e5;">+ Add</button>
+                </div>
+                <div class="customer-list">
+                  ${customerTags || '<div style="color:#94a3b8; font-size:0.85rem;">No customers yet</div>'}
+                </div>
+              </div>
+            </div>
+          `;
+        });
+
+        productListContainer.innerHTML = html;
+      }
+
+      // simple escape for display
+      function escapeHTML(text) {
+        if (!text) return '';
+        return String(text).replace(/[&<>"]/g, function(m) {
+          if (m === '&') return '&amp;';
+          if (m === '<') return '&lt;';
+          if (m === '>') return '&gt;';
+          if (m === '"') return '&quot;';
+          return m;
+        });
+      }
+
+      // ---------- add or update product ----------
+      function handleAddOrUpdate() {
+        const name = productNameInput.value.trim();
+        const price = parseFloat(productPriceInput.value);
+
+        if (!name) {
+          formMessage.textContent = '❗ Please enter a product name.';
+          return;
+        }
+        if (isNaN(price) || price < 0) {
+          formMessage.textContent = '❗ Price must be a valid positive number.';
+          return;
+        }
+
+        if (editingProductId) {
+          // update existing product
+          const index = products.findIndex(p => p.id === editingProductId);
+          if (index !== -1) {
+            products[index] = {
+              ...products[index],
+              name: name,
+              price: price,
+              // keep soldToday and customers from existing product
+            };
+            formMessage.textContent = '✅ Product updated.';
+          } else {
+            formMessage.textContent = '⚠️ Product not found.';
+          }
+          editingProductId = null;
+          addProductBtn.innerHTML = '➕ Add product';
+        } else {
+          // add new product
+          const newProduct = {
+            id: 'prod_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8),
+            name: name,
+            price: price,
+            soldToday: 0,
+            customers: []
+          };
+          products.push(newProduct);
+          formMessage.textContent = '✅ Product added successfully.';
+        }
+
+        saveProducts();
+        clearForm();
+        renderProductList();
+      }
+
+      function clearForm() {
+        productNameInput.value = '';
+        productPriceInput.value = '';
+        editingProductId = null;
+        addProductBtn.innerHTML = '➕ Add product';
+        formMessage.textContent = '';
+        productNameInput.classList.remove('edit-input');
+        productPriceInput.classList.remove('edit-input');
+      }
+
+      // ---------- event delegation for product list ----------
+      productListContainer.addEventListener('click', function(e) {
+        const target = e.target.closest('button');
+        if (!target) return;
+
+        // delete product
+        if (target.classList.contains('delete-product-btn')) {
+          const productId = target.getAttribute('data-id');
+          if (productId && confirm('Delete this product?')) {
+            products = products.filter(p => p.id !== productId);
+            saveProducts();
+            renderProductList();
+            if (editingProductId === productId) clearForm();
+          }
+          return;
+        }
+
+        // edit product (load data into form)
+        if (target.classList.contains('edit-product-btn')) {
+          const productId = target.getAttribute('data-id');
+          const product = products.find(p => p.id === productId);
+          if (product) {
+            productNameInput.value = product.name;
+            productPriceInput.value = product.price;
+            editingProductId = productId;
+            addProductBtn.innerHTML = '💾 Update product';
+            formMessage.textContent = `✏️ Editing "${product.name}" — modify and save.`;
+            productNameInput.classList.add('edit-input');
+            productPriceInput.classList.add('edit-input');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+          return;
+        }
+
+        // increase sold counter
+        if (target.classList.contains('inc-sold-btn')) {
+          const productId = target.getAttribute('data-id');
+          const product = products.find(p => p.id === productId);
+          if (product) {
+            product.soldToday += 1;
+            saveProducts();
+            renderProductList();
+          }
+          return;
+        }
+
+        // decrease sold counter (min 0)
+        if (target.classList.contains('dec-sold-btn')) {
+          const productId = target.getAttribute('data-id');
+          const product = products.find(p => p.id === productId);
+          if (product && product.soldToday > 0) {
+            product.soldToday -= 1;
+            saveProducts();
+            renderProductList();
+          }
+          return;
+        }
+
+        // reset daily sold counter
+        if (target.classList.contains('reset-sold-btn')) {
+          const productId = target.getAttribute('data-id');
+          const product = products.find(p => p.id === productId);
+          if (product) {
+            product.soldToday = 0;
+            saveProducts();
+            renderProductList();
+          }
+          return;
+        }
+
+        // add customer
+        if (target.classList.contains('add-customer-btn')) {
+          const productId = target.getAttribute('data-id');
+          const inputField = document.querySelector(`.customer-name-input[data-product-id="${productId}"]`);
+          const customerName = inputField ? inputField.value.trim() : '';
+          if (!customerName) {
+            alert('Please enter a customer name.');
+            return;
+          }
+          const product = products.find(p => p.id === productId);
+          if (product) {
+            product.customers.push(customerName);
+            saveProducts();
+            renderProductList();
+          }
+          return;
+        }
+
+        // delete specific customer
+        if (target.classList.contains('delete-customer')) {
+          const productId = target.getAttribute('data-product-id');
+          const customerIndex = target.getAttribute('data-customer-index');
+          if (productId && customerIndex !== null) {
+            const idx = parseInt(customerIndex, 10);
+            const product = products.find(p => p.id === productId);
+            if (product && idx >= 0 && idx < product.customers.length) {
+              product.customers.splice(idx, 1);
+              saveProducts();
+              renderProductList();
+            }
+          }
+          return;
+        }
+      });
+
+      // handle add customer via Enter key (optional)
+      productListContainer.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && e.target.classList.contains('customer-name-input')) {
+          const productId = e.target.getAttribute('data-product-id');
+          const customerName = e.target.value.trim();
+          if (customerName && productId) {
+            const product = products.find(p => p.id === productId);
+            if (product) {
+              product.customers.push(customerName);
+              saveProducts();
+              renderProductList();
+            }
+          }
+        }
+      });
+
+      // ---------- global listeners ----------
+      addProductBtn.addEventListener('click', handleAddOrUpdate);
+
+      clearFormBtn.addEventListener('click', function() {
+        clearForm();
+      });
+
+      // press Enter on product name or price to add (optional)
+      productNameInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleAddOrUpdate();
+      });
+      productPriceInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleAddOrUpdate();
+      });
+
+      // ---------- initialize ----------
+      loadProducts();
+      renderProductList();
+    })();
+  </script>
+</body>
+</html>
