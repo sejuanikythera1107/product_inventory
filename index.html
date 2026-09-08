@@ -19,6 +19,7 @@
       --border: #dce5e0;
       --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.04);
       --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 12px 30px rgba(0, 0, 0, 0.1);
       --radius-lg: 24px;
       --radius-md: 18px;
       --radius-sm: 12px;
@@ -26,6 +27,8 @@
       --stock-ok: #ffffff;
       --stock-low: #fef9c3;
       --stock-critical: #fee2e2;
+      --dark-green: #14532d;
+      --dark-green-bg: #d1fae5;
     }
 
     * {
@@ -46,7 +49,7 @@
     }
 
     .app-container {
-      max-width: 580px;
+      max-width: 600px;
       width: 100%;
     }
 
@@ -66,18 +69,18 @@
 
     .logo-icon {
       background: var(--primary);
-      width: 48px;
-      height: 48px;
+      width: 52px;
+      height: 52px;
       border-radius: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.8rem;
+      font-size: 1.9rem;
       box-shadow: 0 8px 18px rgba(27, 122, 75, 0.25);
     }
 
     .logo-text h1 {
-      font-size: 1.6rem;
+      font-size: 1.7rem;
       font-weight: 800;
       letter-spacing: -0.5px;
       line-height: 1.2;
@@ -110,13 +113,18 @@
       box-shadow: var(--shadow-md);
       margin-bottom: 20px;
       border: 1px solid rgba(255, 255, 255, 0.6);
-      transition: transform 0.15s ease;
+      transition: transform 0.15s ease, box-shadow 0.2s;
+    }
+    .card:hover {
+      box-shadow: var(--shadow-lg);
     }
 
-    .add-product-form {
+    .add-product-form,
+    .manual-debt-form,
+    .personal-expense-form {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
     }
 
     .input-row {
@@ -231,6 +239,25 @@
       gap: 8px;
     }
 
+    /* Customer Directory */
+    .customer-directory {
+      margin-bottom: 20px;
+    }
+    .directory-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .directory-tag {
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      padding: 6px 12px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
     .product-list {
       display: flex;
       flex-direction: column;
@@ -246,7 +273,7 @@
       transition: transform 0.1s ease, box-shadow 0.2s, background 0.2s;
     }
     .product-item:hover {
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+      box-shadow: var(--shadow-lg);
     }
     .stock-low {
       background: var(--stock-low);
@@ -391,7 +418,7 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-      max-height: 220px;
+      max-height: 250px;
       overflow-y: auto;
       padding-right: 2px;
     }
@@ -411,6 +438,13 @@
     }
     .customer-tag:hover {
       background: #e9eef3;
+    }
+    .customer-tag.lacks-payment {
+      background: var(--dark-green-bg);
+      border-color: var(--dark-green);
+    }
+    .customer-name.lacks-payment {
+      color: var(--dark-green);
     }
 
     .customer-info {
@@ -478,6 +512,24 @@
       background: #ffedd5;
       color: #b45309;
     }
+    .payment-status-badge {
+      font-size: 0.65rem;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 700;
+    }
+    .status-paid {
+      background: #bbf7d0;
+      color: #14532d;
+    }
+    .status-partial {
+      background: #fef08a;
+      color: #854d0e;
+    }
+    .status-unpaid {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
 
     .delete-customer {
       background: transparent;
@@ -514,26 +566,6 @@
     }
 
     /* Manual debt section */
-    .manual-debt-form,
-    .personal-expense-form {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .manual-debt-row,
-    .personal-expense-row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    .manual-debt-row input,
-    .personal-expense-row input {
-      flex: 1;
-      min-width: 120px;
-      padding: 11px 14px;
-      border-radius: 50px;
-    }
     .debt-list,
     .expense-list {
       display: flex;
@@ -606,7 +638,7 @@
       background: white;
       border-radius: 24px;
       padding: 24px;
-      max-width: 400px;
+      max-width: 450px;
       width: 100%;
       box-shadow: 0 20px 40px rgba(0,0,0,0.2);
       animation: modalFadeIn 0.2s ease;
@@ -698,6 +730,21 @@
       display: none !important;
     }
 
+    .note-button {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      margin-left: 8px;
+    }
+    .note-input {
+      display: none;
+      width: 100%;
+      margin-top: 8px;
+    }
+
     @media (max-width: 400px) {
       .sold-section {
         flex-direction: column;
@@ -718,6 +765,16 @@
         </div>
       </div>
       <div class="header-date" id="currentDate"></div>
+    </div>
+
+    <!-- Customer Directory -->
+    <div class="card customer-directory">
+      <div class="section-title">👥 Frequent Customers</div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <input type="text" id="directoryCustomerName" placeholder="Add customer name" style="flex:1; min-width:150px;">
+        <button class="btn btn-primary" id="addDirectoryCustomerBtn" style="padding:11px 16px;">➕ Add</button>
+      </div>
+      <div id="directoryListContainer" class="directory-list"></div>
     </div>
 
     <!-- Product form -->
@@ -823,8 +880,8 @@
       const PRODUCTS_STORAGE_KEY = 'pocket_inventory_products_v10';
       const DEBTS_STORAGE_KEY = 'pocket_inventory_manual_debts_v2';
       const EXPENSES_STORAGE_KEY = 'pocket_inventory_personal_expenses_v1';
+      const CUSTOMER_DIRECTORY_KEY = 'pocket_inventory_customer_directory_v1';
 
-      // 🔐 Authorization code
       const AUTH_CODE = '0627';
 
       const defaultProducts = [
@@ -837,9 +894,9 @@
           totalStock: 50,
           stockLeft: 20,
           customers: [
-            { name: 'Ana', paymentType: 'cash', date: new Date().toISOString(), quantity: 1 },
-            { name: 'Marco', paymentType: 'cash', date: new Date().toISOString(), quantity: 2 },
-            { name: 'Juls', paymentType: 'debt', date: new Date().toISOString(), quantity: 1 }
+            { name: 'Ana', paymentType: 'cash', date: new Date().toISOString(), quantity: 1, lacksPayment: false, paymentStatus: 'paid', note: '' },
+            { name: 'Marco', paymentType: 'cash', date: new Date().toISOString(), quantity: 2, lacksPayment: false, paymentStatus: 'paid', note: '' },
+            { name: 'Juls', paymentType: 'debt', date: new Date().toISOString(), quantity: 1, lacksPayment: false, paymentStatus: 'unpaid', note: '' }
           ]
         },
         {
@@ -851,23 +908,26 @@
           totalStock: 100,
           stockLeft: 3,
           customers: [
-            { name: 'Tita Linda', paymentType: 'cash', date: new Date().toISOString(), quantity: 3 }
+            { name: 'Tita Linda', paymentType: 'cash', date: new Date().toISOString(), quantity: 3, lacksPayment: false, paymentStatus: 'paid', note: '' }
           ]
         }
       ];
 
       const defaultDebts = [
-        { id: 'debt_' + Date.now() + '_1', name: 'John', productLabel: 'Liquor', amount: 250, date: 'Sep 7, 2026' },
-        { id: 'debt_' + Date.now() + '_2', name: 'Mia', productLabel: 'Soft Drinks', amount: 120, date: 'Sep 6, 2026' }
+        { id: 'debt_' + Date.now() + '_1', name: 'John', productLabel: 'Liquor', amount: 250, date: 'Sep 7, 2026', paymentStatus: 'unpaid', partialPercent: 100 },
+        { id: 'debt_' + Date.now() + '_2', name: 'Mia', productLabel: 'Soft Drinks', amount: 120, date: 'Sep 6, 2026', paymentStatus: 'unpaid', partialPercent: 100 }
       ];
 
       const defaultExpenses = [
         { id: 'exp_' + Date.now() + '_1', name: 'Lunch', amount: 150, date: new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) }
       ];
 
+      const defaultDirectory = ['Ana', 'Tita Linda'];
+
       let products = [];
       let manualDebts = [];
       let personalExpenses = [];
+      let frequentCustomers = [];
 
       function loadProducts() {
         const stored = localStorage.getItem(PRODUCTS_STORAGE_KEY);
@@ -882,12 +942,16 @@
               stockLeft: p.stockLeft || 0,
               customers: Array.isArray(p.customers) ? p.customers.map(c => {
                 if (typeof c === 'string') {
-                  return { name: c, paymentType: 'cash', date: new Date().toISOString(), quantity: 1 };
+                  return { name: c, paymentType: 'cash', date: new Date().toISOString(), quantity: 1, lacksPayment: false, paymentStatus: 'paid', note: '' };
                 }
                 return {
                   ...c,
                   date: c.date || new Date().toISOString(),
-                  quantity: c.quantity || 1
+                  quantity: c.quantity || 1,
+                  lacksPayment: c.lacksPayment || false,
+                  paymentStatus: c.paymentStatus || (c.paymentType === 'debt' ? 'unpaid' : 'paid'),
+                  note: c.note || '',
+                  partialPercent: c.partialPercent || (c.paymentType === 'debt' ? 100 : 0)
                 };
               }) : []
             }));
@@ -909,7 +973,7 @@
         if (stored) {
           try {
             manualDebts = JSON.parse(stored);
-            if (!Array.isArray(manualDebts)) manualDebts = defaultDebts;
+            manualDebts = manualDebts.map(d => ({ ...d, paymentStatus: d.paymentStatus || 'unpaid', partialPercent: d.partialPercent || 100 }));
           } catch (e) {
             manualDebts = [...defaultDebts];
           }
@@ -942,7 +1006,25 @@
         localStorage.setItem(EXPENSES_STORAGE_KEY, JSON.stringify(personalExpenses));
       }
 
-      // 🔐 Authorization helper
+      function loadDirectory() {
+        const stored = localStorage.getItem(CUSTOMER_DIRECTORY_KEY);
+        if (stored) {
+          try {
+            frequentCustomers = JSON.parse(stored);
+            if (!Array.isArray(frequentCustomers)) frequentCustomers = defaultDirectory;
+          } catch (e) {
+            frequentCustomers = [...defaultDirectory];
+          }
+        } else {
+          frequentCustomers = [...defaultDirectory];
+        }
+        saveDirectory();
+      }
+
+      function saveDirectory() {
+        localStorage.setItem(CUSTOMER_DIRECTORY_KEY, JSON.stringify(frequentCustomers));
+      }
+
       function verifyAuth() {
         const entered = prompt('Enter authorization code:');
         return entered === AUTH_CODE;
@@ -961,6 +1043,10 @@
       const productListContainer = document.getElementById('productListContainer');
       const formMessage = document.getElementById('formMessage');
       const currentDateEl = document.getElementById('currentDate');
+
+      const directoryCustomerName = document.getElementById('directoryCustomerName');
+      const addDirectoryCustomerBtn = document.getElementById('addDirectoryCustomerBtn');
+      const directoryListContainer = document.getElementById('directoryListContainer');
 
       const debtCustomerNameInput = document.getElementById('debtCustomerName');
       const debtProductLabelInput = document.getElementById('debtProductLabel');
@@ -1033,6 +1119,12 @@
         }
       }
 
+      // Directory rendering
+      function renderDirectory() {
+        if (!directoryListContainer) return;
+        directoryListContainer.innerHTML = frequentCustomers.map(name => `<span class="directory-tag">👤 ${escapeHTML(name)}</span>`).join('');
+      }
+
       function renderProductList() {
         if (!productListContainer) return;
         if (products.length === 0) {
@@ -1057,15 +1149,19 @@
             const quantity = cust.quantity || 1;
             const totalQty = customerQtyMap[name] || quantity;
             const dateFormatted = formatDate(cust.date);
+            const lacksPaymentClass = cust.lacksPayment ? 'lacks-payment' : '';
+            const paymentStatus = cust.paymentStatus || 'paid';
+            const statusBadge = paymentType === 'debt' ? `<span class="payment-status-badge status-${paymentStatus}">${paymentStatus}</span>` : '';
 
             return `
-              <div class="customer-tag">
+              <div class="customer-tag ${lacksPaymentClass}">
                 <div class="customer-info" data-customer-index="${idx}" data-product-id="${product.id}">
-                  <span class="customer-name ${nameColorClass}">👤 ${escapeHTML(name)}</span>
+                  <span class="customer-name ${nameColorClass} ${lacksPaymentClass}">👤 ${escapeHTML(name)}</span>
                   <span class="customer-count-badge">${totalQty} total</span>
                   <span class="customer-qty-badge">x${quantity}</span>
                   <span class="customer-date">${dateFormatted}</span>
                   <span class="payment-badge ${badgeClass}">${paymentType === 'cash' ? 'Cash' : 'Debt'}</span>
+                  ${statusBadge}
                 </div>
                 <button class="delete-customer" data-product-id="${product.id}" data-customer-index="${idx}">✕</button>
               </div>
@@ -1107,7 +1203,10 @@
               <div class="customer-section">
                 <label>👥 Customers (${customers.length})</label>
                 <div class="add-customer-row">
-                  <input type="text" class="customer-name-input" data-product-id="${product.id}" placeholder="Name" autocomplete="off">
+                  <input type="text" class="customer-name-input" data-product-id="${product.id}" placeholder="Name" autocomplete="off" list="customer-suggestions">
+                  <datalist id="customer-suggestions">
+                    ${frequentCustomers.map(name => `<option value="${escapeHTML(name)}">`).join('')}
+                  </datalist>
                   <input type="number" class="customer-quantity-input" data-product-id="${product.id}" placeholder="Qty" min="1" value="1" style="max-width:70px;">
                   <select class="customer-payment-select" data-product-id="${product.id}">
                     <option value="cash" selected>💵 Cash</option>
@@ -1134,6 +1233,8 @@
         }
         let html = '';
         manualDebts.forEach(debt => {
+          const status = debt.paymentStatus || 'unpaid';
+          const statusBadge = `<span class="payment-status-badge status-${status}">${status}</span>`;
           html += `
             <div class="debt-item" data-debt-id="${debt.id}">
               <div class="debt-info">
@@ -1141,8 +1242,17 @@
                 ${debt.productLabel ? `<span style="font-size:0.8rem; color:var(--text-muted);">📦 ${escapeHTML(debt.productLabel)}</span>` : ''}
                 <span class="debt-amount">₱${parseFloat(debt.amount).toFixed(2)}</span>
                 <span class="debt-date">📅 ${escapeHTML(debt.date)}</span>
+                ${statusBadge}
+                ${status === 'partial' ? `<span> (${debt.partialPercent}% left)</span>` : ''}
               </div>
-              <button class="delete-debt-btn" data-debt-id="${debt.id}">✕</button>
+              <div style="display:flex; gap:6px; align-items:center;">
+                <button class="btn btn-light debt-paid-btn" data-debt-id="${debt.id}">Paid</button>
+                <button class="btn btn-light debt-partial-btn" data-debt-id="${debt.id}">Partial</button>
+                <select class="debt-partial-select" data-debt-id="${debt.id}" style="display:${status === 'partial' ? 'inline-block' : 'none'}; width:70px; padding:6px;">
+                  ${Array.from({length:100}, (_,i)=>i+1).map(n => `<option value="${n}" ${n === debt.partialPercent ? 'selected' : ''}>${n}%</option>`).join('')}
+                </select>
+                <button class="delete-debt-btn" data-debt-id="${debt.id}">✕</button>
+              </div>
             </div>
           `;
         });
@@ -1258,7 +1368,9 @@
           name,
           productLabel,
           amount,
-          date: dateStr
+          date: dateStr,
+          paymentStatus: 'unpaid',
+          partialPercent: 100
         };
         manualDebts.push(newDebt);
         saveDebts();
@@ -1364,6 +1476,11 @@
             </div>
           `).join('');
 
+        const noteText = customer.note || '';
+        const lacksPayment = customer.lacksPayment || false;
+        const paymentStatus = customer.paymentStatus || 'paid';
+        const partialPercent = customer.partialPercent || 100;
+
         modalBody.innerHTML = `
           <div class="summary-stats">
             <div class="stat-box">
@@ -1380,9 +1497,76 @@
             </div>
           </div>
           <div class="summary-list">${listHtml}</div>
+          <hr style="margin:16px 0; border-color:#e2e8f0;">
+          <div style="margin-top:12px;">
+            <label style="display:flex; align-items:center; gap:8px; font-size:0.9rem;">
+              <input type="checkbox" id="lacksPaymentCheckbox" ${lacksPayment ? 'checked' : ''}> Lacks Payment
+            </label>
+            <button class="btn btn-light" id="noteButton" style="margin-top:8px;">📝 Add Note</button>
+            <div id="noteArea" style="margin-top:8px; ${noteText ? '' : 'display:none;'}">
+              <textarea id="noteTextarea" rows="2" style="width:100%; padding:8px; border-radius:12px; border:1px solid var(--border);">${escapeHTML(noteText)}</textarea>
+            </div>
+            ${customer.paymentType === 'debt' ? `
+              <div style="margin-top:12px;">
+                <label style="font-weight:600;">Payment Status:</label>
+                <select id="paymentStatusSelect" style="width:100%; margin-top:6px;">
+                  <option value="unpaid" ${paymentStatus === 'unpaid' ? 'selected' : ''}>Unpaid</option>
+                  <option value="partial" ${paymentStatus === 'partial' ? 'selected' : ''}>Partial</option>
+                  <option value="paid" ${paymentStatus === 'paid' ? 'selected' : ''}>Paid</option>
+                </select>
+                <div id="partialPercentContainer" style="margin-top:6px; ${paymentStatus === 'partial' ? '' : 'display:none;'}">
+                  <label>Percent left:</label>
+                  <select id="partialPercentSelect" style="width:100%;">
+                    ${Array.from({length:100}, (_,i)=>i+1).map(n => `<option value="${n}" ${n === partialPercent ? 'selected' : ''}>${n}%</option>`).join('')}
+                  </select>
+                </div>
+              </div>
+            ` : ''}
+            <button class="btn btn-primary" id="saveCustomerDetailsBtn" style="margin-top:16px;">💾 Save Details</button>
+          </div>
         `;
 
         customerModal.classList.remove('modal-hidden');
+
+        document.getElementById('noteButton').addEventListener('click', function() {
+          document.getElementById('noteArea').style.display = 'block';
+        });
+
+        document.getElementById('paymentStatusSelect')?.addEventListener('change', function() {
+          const val = this.value;
+          const partialContainer = document.getElementById('partialPercentContainer');
+          if (partialContainer) {
+            partialContainer.style.display = val === 'partial' ? 'block' : 'none';
+          }
+        });
+
+        document.getElementById('saveCustomerDetailsBtn').addEventListener('click', function() {
+          const lacksPayment = document.getElementById('lacksPaymentCheckbox').checked;
+          const note = document.getElementById('noteTextarea').value.trim();
+          let paymentStatus = customer.paymentStatus || 'paid';
+          let partialPercent = customer.partialPercent || 100;
+
+          if (customer.paymentType === 'debt') {
+            paymentStatus = document.getElementById('paymentStatusSelect').value;
+            if (paymentStatus === 'partial') {
+              partialPercent = parseInt(document.getElementById('partialPercentSelect').value) || 100;
+            } else {
+              partialPercent = 100;
+            }
+          }
+
+          const prodIndex = products.findIndex(p => p.id === productId);
+          if (prodIndex !== -1) {
+            const custIndex = customerIndex;
+            products[prodIndex].customers[custIndex].lacksPayment = lacksPayment;
+            products[prodIndex].customers[custIndex].note = note;
+            products[prodIndex].customers[custIndex].paymentStatus = paymentStatus;
+            products[prodIndex].customers[custIndex].partialPercent = partialPercent;
+            saveProducts();
+            renderProductList();
+          }
+          closeModal();
+        });
       }
 
       function closeModal() {
@@ -1393,6 +1577,17 @@
       modalCloseBtn.addEventListener('click', closeModal);
       customerModal.addEventListener('click', function(e) {
         if (e.target === customerModal) closeModal();
+      });
+
+      // Directory add
+      addDirectoryCustomerBtn.addEventListener('click', function() {
+        const name = directoryCustomerName.value.trim();
+        if (name && !frequentCustomers.includes(name)) {
+          frequentCustomers.push(name);
+          saveDirectory();
+          renderDirectory();
+          directoryCustomerName.value = '';
+        }
       });
 
       productListContainer.addEventListener('click', function(e) {
@@ -1471,7 +1666,11 @@
               name: customerName, 
               paymentType, 
               date: new Date().toISOString(),
-              quantity: quantity
+              quantity: quantity,
+              lacksPayment: false,
+              paymentStatus: paymentType === 'debt' ? 'unpaid' : 'paid',
+              note: '',
+              partialPercent: paymentType === 'debt' ? 100 : 0
             });
             product.stockLeft = Math.max(0, (product.stockLeft || 0) - quantity);
             saveProducts();
@@ -1507,7 +1706,7 @@
         }
       });
 
-      // Enter key support for customer input (no auth needed for adding)
+      // Enter key support for customer input
       productListContainer.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && e.target.classList.contains('customer-name-input')) {
           const productId = e.target.getAttribute('data-product-id');
@@ -1524,7 +1723,11 @@
                 name: customerName, 
                 paymentType, 
                 date: new Date().toISOString(),
-                quantity: quantity
+                quantity: quantity,
+                lacksPayment: false,
+                paymentStatus: paymentType === 'debt' ? 'unpaid' : 'paid',
+                note: '',
+                partialPercent: paymentType === 'debt' ? 100 : 0
               });
               product.stockLeft = Math.max(0, (product.stockLeft || 0) - quantity);
               saveProducts();
@@ -1541,6 +1744,40 @@
         if (delBtn) {
           const debtId = delBtn.getAttribute('data-debt-id');
           if (debtId) handleDeleteDebt(debtId);
+        }
+        const paidBtn = e.target.closest('.debt-paid-btn');
+        if (paidBtn) {
+          const debtId = paidBtn.getAttribute('data-debt-id');
+          const debt = manualDebts.find(d => d.id === debtId);
+          if (debt) {
+            debt.paymentStatus = 'paid';
+            debt.partialPercent = 0;
+            saveDebts();
+            renderDebtList();
+          }
+        }
+        const partialBtn = e.target.closest('.debt-partial-btn');
+        if (partialBtn) {
+          const debtId = partialBtn.getAttribute('data-debt-id');
+          const debt = manualDebts.find(d => d.id === debtId);
+          if (debt) {
+            debt.paymentStatus = 'partial';
+            debt.partialPercent = 100;
+            saveDebts();
+            renderDebtList();
+          }
+        }
+      });
+
+      debtListContainer.addEventListener('change', function(e) {
+        if (e.target.classList.contains('debt-partial-select')) {
+          const debtId = e.target.getAttribute('data-debt-id');
+          const newPercent = parseInt(e.target.value);
+          const debt = manualDebts.find(d => d.id === debtId);
+          if (debt && debt.paymentStatus === 'partial') {
+            debt.partialPercent = newPercent;
+            saveDebts();
+          }
         }
       });
 
@@ -1564,6 +1801,8 @@
       loadProducts();
       loadDebts();
       loadExpenses();
+      loadDirectory();
+      renderDirectory();
       renderProductList();
       renderDebtList();
       renderExpenseList();
