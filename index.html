@@ -29,6 +29,8 @@
       --stock-critical: #fee2e2;
       --dark-green: #14532d;
       --dark-green-bg: #d1fae5;
+      --debt-bg: #fff7ed;
+      --debt-border: #fed7aa;
     }
 
     * {
@@ -591,8 +593,8 @@
     }
     .debt-item,
     .expense-item {
-      background: #fff7ed;
-      border: 1px solid #fed7aa;
+      background: var(--debt-bg);
+      border: 1px solid var(--debt-border);
       border-radius: 20px;
       padding: 10px 16px;
       display: flex;
@@ -631,6 +633,26 @@
       cursor: pointer;
       font-size: 1.1rem;
       padding: 0 6px;
+    }
+
+    /* Debtors Overview */
+    .debtors-overview {
+      background: #fff7ed;
+      border-color: #fed7aa;
+    }
+    .debtor-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #fde8d7;
+    }
+    .debtor-name {
+      font-weight: 600;
+    }
+    .debtor-total {
+      font-weight: 800;
+      color: #b45309;
     }
 
     /* Modal */
@@ -877,6 +899,12 @@
       </div>
       <div id="expenseListContainer" class="expense-list" style="margin-top: 16px;"></div>
     </div>
+
+    <!-- Debtors Overview -->
+    <div class="card debtors-overview" style="margin-top: 24px;">
+      <div class="section-title">📊 Debtors Overview</div>
+      <div id="debtorsOverviewContainer"></div>
+    </div>
   </div>
 
   <!-- Customer summary modal -->
@@ -909,9 +937,9 @@
           totalStock: 50,
           stockLeft: 20,
           customers: [
-            { name: 'Ana', paymentType: 'cash', date: new Date().toISOString(), quantity: 1, lacksPayment: false, paymentStatus: 'paid', note: '' },
-            { name: 'Marco', paymentType: 'cash', date: new Date().toISOString(), quantity: 2, lacksPayment: false, paymentStatus: 'paid', note: '' },
-            { name: 'Juls', paymentType: 'debt', date: new Date().toISOString(), quantity: 1, lacksPayment: false, paymentStatus: 'unpaid', note: '' }
+            { name: 'Ana', paymentType: 'cash', date: new Date().toISOString(), quantity: 1, lacksPayment: false, paymentStatus: 'paid', note: '', lackAmount: 0 },
+            { name: 'Marco', paymentType: 'cash', date: new Date().toISOString(), quantity: 2, lacksPayment: false, paymentStatus: 'paid', note: '', lackAmount: 0 },
+            { name: 'Juls', paymentType: 'debt', date: new Date().toISOString(), quantity: 1, lacksPayment: false, paymentStatus: 'unpaid', note: '', lackAmount: 0 }
           ]
         },
         {
@@ -923,7 +951,7 @@
           totalStock: 100,
           stockLeft: 3,
           customers: [
-            { name: 'Tita Linda', paymentType: 'cash', date: new Date().toISOString(), quantity: 3, lacksPayment: false, paymentStatus: 'paid', note: '' }
+            { name: 'Tita Linda', paymentType: 'cash', date: new Date().toISOString(), quantity: 3, lacksPayment: false, paymentStatus: 'paid', note: '', lackAmount: 0 }
           ]
         }
       ];
@@ -957,7 +985,7 @@
               stockLeft: p.stockLeft || 0,
               customers: Array.isArray(p.customers) ? p.customers.map(c => {
                 if (typeof c === 'string') {
-                  return { name: c, paymentType: 'cash', date: new Date().toISOString(), quantity: 1, lacksPayment: false, paymentStatus: 'paid', note: '' };
+                  return { name: c, paymentType: 'cash', date: new Date().toISOString(), quantity: 1, lacksPayment: false, paymentStatus: 'paid', note: '', lackAmount: 0 };
                 }
                 return {
                   ...c,
@@ -966,7 +994,8 @@
                   lacksPayment: c.lacksPayment || false,
                   paymentStatus: c.paymentStatus || (c.paymentType === 'debt' ? 'unpaid' : 'paid'),
                   note: c.note || '',
-                  partialPercent: c.partialPercent || (c.paymentType === 'debt' ? 100 : 0)
+                  partialPercent: c.partialPercent || (c.paymentType === 'debt' ? 100 : 0),
+                  lackAmount: c.lackAmount || 0
                 };
               }) : []
             }));
@@ -1081,12 +1110,13 @@
       const modalBody = document.getElementById('modalBody');
       const modalCloseBtn = document.getElementById('modalCloseBtn');
 
+      const debtorsOverviewContainer = document.getElementById('debtorsOverviewContainer');
+
       let editingProductId = null;
 
       const today = new Date();
       currentDateEl.textContent = today.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
 
-      // Auto date toggle for expense
       expenseAutoDateCheckbox.addEventListener('change', function() {
         expenseManualDateInput.disabled = this.checked;
         if (this.checked) {
@@ -1105,7 +1135,6 @@
       productCategoryInput.addEventListener('change', toggleCigaretteUnit);
       toggleCigaretteUnit();
 
-      // Build map: customer name -> total quantity purchased across all products
       function buildCustomerQuantityMap() {
         const map = {};
         products.forEach(prod => {
@@ -1134,7 +1163,6 @@
         }
       }
 
-      // Directory rendering with delete buttons
       function renderDirectory() {
         if (!directoryListContainer) return;
         directoryListContainer.innerHTML = frequentCustomers.map((name, idx) => `
@@ -1301,6 +1329,49 @@
         expenseListContainer.innerHTML = html;
       }
 
+      // New: Render debtors overview
+      function renderDebtorsOverview() {
+        if (!debtorsOverviewContainer) return;
+        const debtMap = {};
+
+        // Add debts from product customers
+        products.forEach(prod => {
+          prod.customers.forEach(c => {
+            const name = c.name;
+            let amount = 0;
+            if (c.paymentType === 'debt') {
+              amount = (parseFloat(prod.price) || 0) * (c.quantity || 1);
+            }
+            if (c.lacksPayment && c.lackAmount > 0) {
+              amount += c.lackAmount;
+            }
+            if (amount > 0) {
+              debtMap[name] = (debtMap[name] || 0) + amount;
+            }
+          });
+        });
+
+        // Add manual debts (unpaid and partial only)
+        manualDebts.forEach(debt => {
+          if (debt.paymentStatus !== 'paid') {
+            const name = debt.name;
+            debtMap[name] = (debtMap[name] || 0) + (parseFloat(debt.amount) || 0);
+          }
+        });
+
+        const debtors = Object.entries(debtMap);
+        if (debtors.length === 0) {
+          debtorsOverviewContainer.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem;">No outstanding debts.</div>';
+          return;
+        }
+        debtorsOverviewContainer.innerHTML = debtors.map(([name, amount]) => `
+          <div class="debtor-item">
+            <span class="debtor-name">👤 ${escapeHTML(name)}</span>
+            <span class="debtor-total">₱${amount.toFixed(2)}</span>
+          </div>
+        `).join('');
+      }
+
       function escapeHTML(text) {
         if (!text) return '';
         return String(text).replace(/[&<>"]/g, function(m) {
@@ -1355,6 +1426,7 @@
         saveProducts();
         clearProductForm();
         renderProductList();
+        renderDebtorsOverview();
       }
 
       function clearProductForm() {
@@ -1395,6 +1467,7 @@
         manualDebts.push(newDebt);
         saveDebts();
         renderDebtList();
+        renderDebtorsOverview();
         debtCustomerNameInput.value = '';
         debtProductLabelInput.value = '';
         debtAmountInput.value = '';
@@ -1409,6 +1482,7 @@
         manualDebts = manualDebts.filter(d => d.id !== debtId);
         saveDebts();
         renderDebtList();
+        renderDebtorsOverview();
       }
 
       // Personal expense functions
@@ -1452,7 +1526,7 @@
         renderExpenseList();
       }
 
-      // Customer summary modal
+      // Customer summary modal (updated to include lack amount in total debt)
       function showCustomerSummary(productId, customerIndex) {
         const product = products.find(p => p.id === productId);
         if (!product) return;
@@ -1472,6 +1546,12 @@
               totalItems++;
               if (c.paymentType === 'cash') totalCash += amount;
               else totalDebt += amount;
+
+              // Add lack amount to total debt if any
+              if (c.lacksPayment && c.lackAmount > 0) {
+                totalDebt += c.lackAmount;
+              }
+
               summaryItems.push({
                 productName: prod.name,
                 price: prod.price,
@@ -1496,8 +1576,22 @@
             </div>
           `).join('');
 
+        // Add a line for lack amount if any
+        if (customer.lacksPayment && customer.lackAmount > 0) {
+          listHtml += `
+            <div class="summary-item">
+              <div class="summary-item-left">
+                <span><strong>⚠️ Lack Payment</strong></span>
+                <span class="summary-item-date">Additional debt from lack</span>
+              </div>
+              <span class="payment-badge payment-debt">₱${customer.lackAmount.toFixed(2)}</span>
+            </div>
+          `;
+        }
+
         const noteText = customer.note || '';
         const lacksPayment = customer.lacksPayment || false;
+        const lackAmount = customer.lackAmount || 0;
         const paymentStatus = customer.paymentStatus || 'paid';
         const partialPercent = customer.partialPercent || 100;
 
@@ -1522,6 +1616,12 @@
             <label style="display:flex; align-items:center; gap:8px; font-size:0.9rem;">
               <input type="checkbox" id="lacksPaymentCheckbox" ${lacksPayment ? 'checked' : ''}> Lacks Payment
             </label>
+            <div id="lackAmountContainer" style="margin-top:8px; ${lacksPayment ? '' : 'display:none;'}">
+              <label style="font-weight:600;">Amount lacking (₱):</label>
+              <select id="lackAmountSelect" style="width:100%; margin-top:6px;">
+                ${Array.from({length:100}, (_,i)=>i+1).map(n => `<option value="${n}" ${n === lackAmount ? 'selected' : ''}>₱${n}</option>`).join('')}
+              </select>
+            </div>
             <button class="btn btn-light" id="noteButton" style="margin-top:8px;">📝 Add Note</button>
             <div id="noteArea" style="margin-top:8px; ${noteText ? '' : 'display:none;'}">
               <textarea id="noteTextarea" rows="2" style="width:100%; padding:8px; border-radius:12px; border:1px solid var(--border);">${escapeHTML(noteText)}</textarea>
@@ -1548,6 +1648,10 @@
 
         customerModal.classList.remove('modal-hidden');
 
+        document.getElementById('lacksPaymentCheckbox').addEventListener('change', function() {
+          document.getElementById('lackAmountContainer').style.display = this.checked ? 'block' : 'none';
+        });
+
         document.getElementById('noteButton').addEventListener('click', function() {
           document.getElementById('noteArea').style.display = 'block';
         });
@@ -1563,6 +1667,12 @@
         document.getElementById('saveCustomerDetailsBtn').addEventListener('click', function() {
           const lacksPayment = document.getElementById('lacksPaymentCheckbox').checked;
           const note = document.getElementById('noteTextarea').value.trim();
+          let lackAmount = customer.lackAmount || 0;
+          if (lacksPayment) {
+            lackAmount = parseInt(document.getElementById('lackAmountSelect').value) || 0;
+          } else {
+            lackAmount = 0;
+          }
           let paymentStatus = customer.paymentStatus || 'paid';
           let partialPercent = customer.partialPercent || 100;
 
@@ -1582,8 +1692,10 @@
             products[prodIndex].customers[custIndex].note = note;
             products[prodIndex].customers[custIndex].paymentStatus = paymentStatus;
             products[prodIndex].customers[custIndex].partialPercent = partialPercent;
+            products[prodIndex].customers[custIndex].lackAmount = lackAmount;
             saveProducts();
             renderProductList();
+            renderDebtorsOverview();
           }
           closeModal();
         });
@@ -1599,7 +1711,6 @@
         if (e.target === customerModal) closeModal();
       });
 
-      // Directory add
       addDirectoryCustomerBtn.addEventListener('click', function() {
         const name = directoryCustomerName.value.trim();
         if (name && !frequentCustomers.includes(name)) {
@@ -1610,7 +1721,6 @@
         }
       });
 
-      // Directory delete
       directoryListContainer.addEventListener('click', function(e) {
         const delBtn = e.target.closest('.delete-directory-btn');
         if (delBtn) {
@@ -1637,7 +1747,6 @@
         const target = e.target.closest('button');
         if (!target) return;
 
-        // 🔒 Delete product – requires auth
         if (target.classList.contains('delete-product-btn')) {
           const productId = target.getAttribute('data-id');
           if (productId && confirm('Delete this product?')) {
@@ -1648,12 +1757,12 @@
             products = products.filter(p => p.id !== productId);
             saveProducts();
             renderProductList();
+            renderDebtorsOverview();
             if (editingProductId === productId) clearProductForm();
           }
           return;
         }
 
-        // 🔒 Edit product – requires auth
         if (target.classList.contains('edit-product-btn')) {
           if (!verifyAuth()) {
             alert('Access denied');
@@ -1703,16 +1812,17 @@
               lacksPayment: false,
               paymentStatus: paymentType === 'debt' ? 'unpaid' : 'paid',
               note: '',
-              partialPercent: paymentType === 'debt' ? 100 : 0
+              partialPercent: paymentType === 'debt' ? 100 : 0,
+              lackAmount: 0
             });
             product.stockLeft = Math.max(0, (product.stockLeft || 0) - quantity);
             saveProducts();
             renderProductList();
+            renderDebtorsOverview();
           }
           return;
         }
 
-        // 🔒 Delete customer – requires auth
         if (target.classList.contains('delete-customer')) {
           const productId = target.getAttribute('data-product-id');
           const customerIndex = target.getAttribute('data-customer-index');
@@ -1733,13 +1843,13 @@
               }
               saveProducts();
               renderProductList();
+              renderDebtorsOverview();
             }
           }
           return;
         }
       });
 
-      // Enter key support for customer input
       productListContainer.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && e.target.classList.contains('customer-name-input')) {
           const productId = e.target.getAttribute('data-product-id');
@@ -1760,17 +1870,18 @@
                 lacksPayment: false,
                 paymentStatus: paymentType === 'debt' ? 'unpaid' : 'paid',
                 note: '',
-                partialPercent: paymentType === 'debt' ? 100 : 0
+                partialPercent: paymentType === 'debt' ? 100 : 0,
+                lackAmount: 0
               });
               product.stockLeft = Math.max(0, (product.stockLeft || 0) - quantity);
               saveProducts();
               renderProductList();
+              renderDebtorsOverview();
             }
           }
         }
       });
 
-      // Manual debt events
       addDebtBtn.addEventListener('click', handleAddDebt);
       debtListContainer.addEventListener('click', function(e) {
         const delBtn = e.target.closest('.delete-debt-btn');
@@ -1787,6 +1898,7 @@
             debt.partialPercent = 0;
             saveDebts();
             renderDebtList();
+            renderDebtorsOverview();
           }
         }
         const partialBtn = e.target.closest('.debt-partial-btn');
@@ -1798,6 +1910,7 @@
             debt.partialPercent = 100;
             saveDebts();
             renderDebtList();
+            renderDebtorsOverview();
           }
         }
       });
@@ -1814,7 +1927,6 @@
         }
       });
 
-      // Personal expense events
       addExpenseBtn.addEventListener('click', handleAddExpense);
       expenseListContainer.addEventListener('click', function(e) {
         const delBtn = e.target.closest('.delete-expense-btn');
@@ -1824,7 +1936,6 @@
         }
       });
 
-      // Global product form listeners
       addProductBtn.addEventListener('click', handleAddOrUpdateProduct);
       clearFormBtn.addEventListener('click', clearProductForm);
       productNameInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleAddOrUpdateProduct(); });
@@ -1839,6 +1950,7 @@
       renderProductList();
       renderDebtList();
       renderExpenseList();
+      renderDebtorsOverview();
     })();
   </script>
 </body>
