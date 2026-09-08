@@ -256,6 +256,21 @@
       border-radius: 30px;
       font-size: 0.85rem;
       font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .delete-directory-btn {
+      background: transparent;
+      border: none;
+      color: #b91c1c;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0 2px;
+      line-height: 1;
+    }
+    .delete-directory-btn:hover {
+      color: #dc2626;
     }
 
     .product-list {
@@ -1119,10 +1134,15 @@
         }
       }
 
-      // Directory rendering
+      // Directory rendering with delete buttons
       function renderDirectory() {
         if (!directoryListContainer) return;
-        directoryListContainer.innerHTML = frequentCustomers.map(name => `<span class="directory-tag">👤 ${escapeHTML(name)}</span>`).join('');
+        directoryListContainer.innerHTML = frequentCustomers.map((name, idx) => `
+          <span class="directory-tag">
+            👤 ${escapeHTML(name)}
+            <button class="delete-directory-btn" data-index="${idx}" title="Remove">✕</button>
+          </span>
+        `).join('');
       }
 
       function renderProductList() {
@@ -1587,6 +1607,19 @@
           saveDirectory();
           renderDirectory();
           directoryCustomerName.value = '';
+        }
+      });
+
+      // Directory delete
+      directoryListContainer.addEventListener('click', function(e) {
+        const delBtn = e.target.closest('.delete-directory-btn');
+        if (delBtn) {
+          const index = parseInt(delBtn.getAttribute('data-index'), 10);
+          if (!isNaN(index) && index >= 0 && index < frequentCustomers.length) {
+            frequentCustomers.splice(index, 1);
+            saveDirectory();
+            renderDirectory();
+          }
         }
       });
 
